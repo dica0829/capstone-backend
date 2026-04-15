@@ -11,10 +11,11 @@ public class CommonResponse<T> {
     private T data;
     private String error;
 
-    public static <T> CommonResponse<T> success(T data) {
-        return new CommonResponse<>(true, data, null);
+    public static <T> CommonResponse<T> error(String message) {
+        return new CommonResponse<>(false, null, message); // 첫 번째 인자를 false로!
     }
-    public static <T> CommonResponse<T> error(String errorMessage) {
-        return new CommonResponse<>(false, null, errorMessage);
+
+    public static <T> CommonResponse<T> success(T data) {
+        return new CommonResponse<>(true, data, null); // 성공은 true
     }
 }

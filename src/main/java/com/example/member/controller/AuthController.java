@@ -1,9 +1,6 @@
 package com.example.member.controller;
 
-import com.example.member.dto.CheckCertificationRequest;
-import com.example.member.dto.CommonResponse;
-import com.example.member.dto.EmailcertificationRequest;
-import com.example.member.dto.SignupRequest;
+import com.example.member.dto.*;
 import com.example.member.entity.User;
 import com.example.member.service.AuthService;
 import com.example.member.util.JwtUtil;
@@ -13,6 +10,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -35,9 +33,8 @@ public class AuthController {
             @ApiResponse(responseCode = "400", description = "입력값 오류 또는 미인증 이메일")
     })
     @PostMapping("/signup")
-    public ResponseEntity<CommonResponse<Map<String, Object>>> signup(@RequestBody SignupRequest request) {
+    public ResponseEntity<CommonResponse<Map<String, Object>>> signup(@RequestBody @Valid SignupRequest request) {
         try {
-            // 💡 authCode 없이 이메일, 비밀번호, 닉네임만 전달 (DB의 isVerified 상태로 검증)
             User savedUser = authService.signup(
                     request.getSchoolEmail(),
                     request.getPassword(),
@@ -45,11 +42,13 @@ public class AuthController {
             );
 
             Map<String, Object> result = new HashMap<>();
-            result.put("user_id", savedUser.getId());
+            // 명세서와 일치시키기 위해 userId (CamelCase) 사용 권장
+            result.put("userId", savedUser.getId());
             result.put("message", "회원가입이 완료되었습니다.");
 
-            return ResponseEntity.status(201).body(CommonResponse.success(result));
+            return ResponseEntity.status(HttpStatus.CREATED).body(CommonResponse.success(result));
         } catch (RuntimeException e) {
+            // 실패 시 CommonResponse.error()가 반드시 success: false를 리턴해야 함
             return ResponseEntity.badRequest().body(CommonResponse.error(e.getMessage()));
         }
     }
@@ -60,7 +59,8 @@ public class AuthController {
             @ApiResponse(responseCode = "401", description = "로그인 정보 불일치")
     })
     @PostMapping("/login")
-    public ResponseEntity<CommonResponse<Map<String, Object>>> login(@RequestBody SignupRequest request) {
+    // 💡 별도의 LoginRequest DTO 사용 권장 (nickname이 필요 없으므로)
+    public ResponseEntity<CommonResponse<Map<String, Object>>> login(@RequestBody @Valid LoginRequest request) {
         try {
             User user = authService.login(request.getSchoolEmail(), request.getPassword());
 
@@ -72,18 +72,13 @@ public class AuthController {
 
                 return ResponseEntity.ok(CommonResponse.success(result));
             }
-            return ResponseEntity.status(401).body(CommonResponse.error("로그인 정보가 틀렸습니다."));
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(CommonResponse.error("로그인 정보가 틀렸습니다."));
         } catch (RuntimeException e) {
-            // AuthService 내부 에러 발생 시 처리
-            return ResponseEntity.status(401).body(CommonResponse.error(e.getMessage()));
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(CommonResponse.error(e.getMessage()));
         }
     }
 
     @Operation(summary = "3. 이메일 인증 번호 발송", description = "가입하려는 이메일로 인증 코드를 발송합니다.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "인증 코드 발송 성공"),
-            @ApiResponse(responseCode = "400", description = "잘못된 이메일 형식 또는 발송 실패")
-    })
     @PostMapping("/certification")
     public ResponseEntity<CommonResponse<String>> sendCertificationEmail(@RequestBody @Valid EmailcertificationRequest request) {
         try {
@@ -95,10 +90,6 @@ public class AuthController {
     }
 
     @Operation(summary = "4. 인증 번호 확인 (검증)", description = "이메일로 발송된 6자리 인증 번호가 맞는지 검증합니다.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "인증 성공"),
-            @ApiResponse(responseCode = "400", description = "인증번호 불일치 또는 만료")
-    })
     @PostMapping("/verify")
     public ResponseEntity<CommonResponse<String>> verifyCertificationCode(@RequestBody @Valid CheckCertificationRequest request) {
         try {

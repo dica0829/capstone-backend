@@ -43,7 +43,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             } else {
-                // (선택 사항) 로그아웃된 토큰으로 접근했을 때의 로그 출력
+
                 logger.info("로그아웃 처리된 토큰으로 접근을 시도했습니다.");
             }
         }

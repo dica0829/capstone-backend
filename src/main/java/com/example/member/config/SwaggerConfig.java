@@ -14,7 +14,6 @@ import java.util.List;
 @Configuration
 public class SwaggerConfig {
 
-    // 1. JWT 토큰 입력 버튼(Authorize)을 활성화하는 설정
     @Bean
     public OpenAPI openAPI() {
         String securitySchemeName = "Bearer Authentication";
@@ -31,7 +30,7 @@ public class SwaggerConfig {
                 .components(components);
     }
 
-    // 2. 기존의 API 정렬 로직
+    // 2.API 정렬 로직
     @Bean
     public OpenApiCustomizer sortOperationsBySummary() {
         return openApi -> {

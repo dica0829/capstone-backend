@@ -12,9 +12,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+// SecurityConfig.java 전체
 @Configuration
 @EnableWebSecurity
-@RequiredArgsConstructor // JwtAuthenticationFilter 주입을 위해 필요
+@RequiredArgsConstructor
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
@@ -27,7 +28,6 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
-
         http
                 .csrf((auth) -> auth.disable())
                 .formLogin((auth) -> auth.disable())
@@ -35,15 +35,23 @@ public class SecurityConfig {
 
         http
                 .authorizeHttpRequests((auth) -> auth
-
+                        // 1. 누구나 접근 가능한 경로 (로그인 전)
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
+                        .requestMatchers("/", "/Login", "/join").permitAll()
 
-                        .requestMatchers("/Login", "/", "/join", "/api/auth/**").permitAll()
+                        // [수정 포인트] 실제 테스트 주소인 /api/auth/... 계열을 모두 허용 목록에 추가
+                        .requestMatchers("/api/auth/login", "/api/auth/signup").permitAll()
+                        .requestMatchers("/api/auth/certification", "/api/auth/check-certification", "/api/auth/verify").permitAll()
+
+                        // 2. 관리자 및 기타
                         .requestMatchers("/admin").hasRole("ADMIN")
+
+                        // 3. 그 외 모든 API (로그아웃, 내 정보 조회 등)는 반드시 '인증' 필요
                         .anyRequest().authenticated());
 
         http
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+
         http
                 .sessionManagement((session) -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS));

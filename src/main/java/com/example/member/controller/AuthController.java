@@ -42,13 +42,11 @@ public class AuthController {
             );
 
             Map<String, Object> result = new HashMap<>();
-            // 명세서와 일치시키기 위해 userId (CamelCase) 사용 권장
             result.put("userId", savedUser.getId());
             result.put("message", "회원가입이 완료되었습니다.");
 
             return ResponseEntity.status(HttpStatus.CREATED).body(CommonResponse.success(result));
         } catch (RuntimeException e) {
-            // 실패 시 CommonResponse.error()가 반드시 success: false를 리턴해야 함
             return ResponseEntity.badRequest().body(CommonResponse.error(e.getMessage()));
         }
     }
@@ -95,6 +93,25 @@ public class AuthController {
         try {
             authService.verifyCertificationCode(request);
             return ResponseEntity.ok(CommonResponse.success("인증에 성공하였습니다."));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(CommonResponse.error(e.getMessage()));
+        }
+    }
+
+    @Operation(summary = "5. 로그아웃", description = "Access Token을 블랙리스트에 등록하여 로그아웃을 처리합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "로그아웃 성공"),
+            @ApiResponse(responseCode = "400", description = "유효하지 않은 토큰")
+    })
+    @PostMapping("/logout")
+    public ResponseEntity<CommonResponse<String>> logout(@RequestHeader(value = "Authorization", required = false) String headerAuth) {
+        try {
+            if (headerAuth != null && headerAuth.startsWith("Bearer ")) {
+                String token = headerAuth.substring(7);
+                authService.logout(token);
+                return ResponseEntity.ok(CommonResponse.success("로그아웃이 완료되었습니다."));
+            }
+            return ResponseEntity.badRequest().body(CommonResponse.error("토큰이 존재하지 않습니다."));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(CommonResponse.error(e.getMessage()));
         }

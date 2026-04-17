@@ -49,4 +49,10 @@ public class JwtUtil {
                 .parseSignedClaims(token)
                 .getPayload();
     }
+
+    public long getExpiration(String token) {
+        Date expiration = getClaims(token).getExpiration();
+        long now = new Date().getTime();
+        return (expiration.getTime() - now);
+    }
 }

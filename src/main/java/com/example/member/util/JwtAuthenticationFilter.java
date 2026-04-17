@@ -1,5 +1,6 @@
 package com.example.member.util;
 
+import com.example.member.service.RedisService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -20,6 +21,7 @@ import java.util.ArrayList;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
+    private final RedisService redisService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
@@ -27,15 +29,23 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String token = parseJwt(request);
 
+        // 1. 토큰이 존재하고, 유효기간이 지나지 않았는지 검증
         if (token != null && jwtUtil.validateToken(token)) {
-            String email = jwtUtil.extractEmail(token);
 
-            UsernamePasswordAuthenticationToken authentication =
-                    new UsernamePasswordAuthenticationToken(email, null, new ArrayList<>());
+            // 2. Redis에 저장된 블랙리스트(로그아웃 처리된 토큰)에 없는지 확인
+            if (!redisService.hasKeyBlackList(token)) {
+                String email = jwtUtil.extractEmail(token);
 
-            authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                UsernamePasswordAuthenticationToken authentication =
+                        new UsernamePasswordAuthenticationToken(email, null, new ArrayList<>());
 
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+            } else {
+                // (선택 사항) 로그아웃된 토큰으로 접근했을 때의 로그 출력
+                logger.info("로그아웃 처리된 토큰으로 접근을 시도했습니다.");
+            }
         }
 
         filterChain.doFilter(request, response);
@@ -49,6 +59,4 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
         return null;
     }
-
-
 }

@@ -27,7 +27,7 @@ public class SwaggerConfig {
                         .bearerFormat("JWT"));
 
         return new OpenAPI()
-                .addSecurityItem(securityRequirement) // s를 제거한 단수형 메서드
+                .addSecurityItem(securityRequirement)
                 .components(components);
     }
 

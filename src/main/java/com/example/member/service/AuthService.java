@@ -7,6 +7,7 @@ import com.example.member.entity.User;
 import com.example.member.repository.EmailAuthRepository;
 import com.example.member.repository.UserRepository;
 import com.example.member.util.EmailProvider;
+import com.example.member.util.JwtUtil;
 import jakarta.validation.constraints.Email;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -23,7 +24,8 @@ public class AuthService {
     private final EmailAuthRepository emailAuthRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailProvider emailProvider;
-
+    private final JwtUtil jwtUtil;
+    private final RedisService redisService;
     // 1. 회원가입
     public User signup(String email, String password, String nickname) {
         EmailAuth emailAuth = emailAuthRepository.findById(email)
@@ -99,4 +101,34 @@ public class AuthService {
         }
         return certificationNumber.toString();
     }
+
+
+    // 5. 로그아웃 로직
+    // AuthService.java의 로그아웃 로직 수정
+    public void logout(String authHeader) {
+        String accessToken = authHeader;
+
+        // 0. Bearer 접두사가 있다면 제거
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            accessToken = authHeader.substring(7);
+        }
+
+        // 1. 토큰 검증
+        if (!jwtUtil.validateToken(accessToken)) {
+            throw new RuntimeException("유효하지 않은 토큰입니다.");
+        }
+
+        // 2. 토큰에서 이메일 추출
+        String email = jwtUtil.extractEmail(accessToken);
+
+        // 3. Refresh Token 삭제
+        redisService.deleteRefreshToken(email);
+
+        // 4. Access Token 블랙리스트 등록 (순수 토큰값만 저장됨)
+        long expiration = jwtUtil.getExpiration(accessToken);
+        if (expiration > 0) {
+            redisService.setBlackList(accessToken, expiration);
+        }
+    }
+
 }

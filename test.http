@@ -1,5 +1,5 @@
 ### 1. 이메일 인증 번호 발송
-POST http://localhost:8080/api/auth/certification
+POST http://52.63.7.132:8080/api/auth/certification
 Content-Type: application/json
 
 {

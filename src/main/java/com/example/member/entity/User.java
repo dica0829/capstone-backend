@@ -6,7 +6,7 @@ import lombok.*;
 @Entity
 @Table(name = "users")
 @Getter
-@Setter // 서비스 로직에서 값을 채워넣기 위해 클래스 레벨에 Setter 허용
+@Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
@@ -25,4 +25,9 @@ public class User {
     @Column
     private String nickname;
 
+    @Column
+    private String department;
+
+    @Column
+    private String grade;
 }

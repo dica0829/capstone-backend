@@ -38,7 +38,9 @@ public class AuthController {
             User savedUser = authService.signup(
                     request.getSchoolEmail(),
                     request.getPassword(),
-                    request.getNickname()
+                    request.getNickname(),
+                    request.getDepartment(),
+                    request.getGrade()
             );
 
             Map<String, Object> result = new HashMap<>();
@@ -51,21 +53,42 @@ public class AuthController {
         }
     }
 
+    // 닉네임 중복 체크 API
+    @Operation(summary = "닉네임 중복 체크", description = "가입 전 닉네임 사용 가능 여부를 확인합니다.")
+    @GetMapping("/check-nickname")
+    public ResponseEntity<CommonResponse<Map<String, Object>>> checkNickname(@RequestParam String nickname) {
+        boolean isAvailable = authService.checkNickname(nickname);
+        Map<String, Object> result = new HashMap<>();
+        result.put("isAvailable", isAvailable);
+        result.put("message", "사용가능한 닉네임 입니다.");
+
+        if (isAvailable) {
+            result.put("message", "사용 가능한 닉네임입니다.");
+        } else {
+            result.put("message", "이미 사용 중인 닉네임입니다.");
+        }
+        return ResponseEntity.ok(CommonResponse.success(result));
+    }
+
     @Operation(summary = "2. 로그인", description = "이메일과 비밀번호로 로그인을 진행하고 JWT 토큰을 반환받습니다.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "로그인 성공 및 토큰 발급"),
             @ApiResponse(responseCode = "401", description = "로그인 정보 불일치")
     })
     @PostMapping("/login")
-    // 💡 별도의 LoginRequest DTO 사용 권장 (nickname이 필요 없으므로)
+
     public ResponseEntity<CommonResponse<Map<String, Object>>> login(@RequestBody @Valid LoginRequest request) {
         try {
             User user = authService.login(request.getSchoolEmail(), request.getPassword());
 
             if (user != null) {
                 Map<String, Object> result = new HashMap<>();
-                result.put("token", jwtUtil.generateToken(user.getSchoolEmail()));
+                //
+                result.put("accessToken", jwtUtil.generateToken(user.getSchoolEmail()));
+
                 result.put("nickname", user.getNickname());
+                result.put("department", user.getDepartment());
+                result.put("grade", user.getGrade());
                 result.put("message", "로그인 성공");
 
                 return ResponseEntity.ok(CommonResponse.success(result));
@@ -116,4 +139,5 @@ public class AuthController {
             return ResponseEntity.badRequest().body(CommonResponse.error(e.getMessage()));
         }
     }
+
 }

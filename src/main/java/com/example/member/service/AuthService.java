@@ -26,8 +26,9 @@ public class AuthService {
     private final EmailProvider emailProvider;
     private final JwtUtil jwtUtil;
     private final RedisService redisService;
+
     // 1. 회원가입
-    public User signup(String email, String password, String nickname) {
+    public User signup(String email, String password, String nickname, String department, String grade) {
         EmailAuth emailAuth = emailAuthRepository.findById(email)
                 .orElseThrow(() -> new RuntimeException("이메일 인증을 진행해주세요."));
 
@@ -43,6 +44,8 @@ public class AuthService {
                 .schoolEmail(email)
                 .password(passwordEncoder.encode(password))
                 .nickname(nickname)
+                .department(department)
+                .grade(grade)
                 .build();
 
         User savedUser = userRepository.save(user);
@@ -51,6 +54,12 @@ public class AuthService {
         emailAuthRepository.delete(emailAuth);
 
         return savedUser;
+    }
+
+    // 닉네임 중복 체크
+    public boolean checkNickname(String nickname) {
+        // Optional이 비어있으면(isEmpty) true(사용 가능)를 반환합니다.
+        return userRepository.findByNickname(nickname).isEmpty();
     }
 
     // 2. 로그인
@@ -93,7 +102,7 @@ public class AuthService {
         emailAuthRepository.save(emailAuth);
     }
 
-    //6자리 난수 생성
+    // 6자리 난수 생성
     private String getCertificationNumber() {
         StringBuilder certificationNumber = new StringBuilder();
         for (int i = 0; i < 6; i++) {
@@ -102,9 +111,7 @@ public class AuthService {
         return certificationNumber.toString();
     }
 
-
     // 5. 로그아웃 로직
-    // AuthService.java의 로그아웃 로직 수정
     public void logout(String authHeader) {
         String accessToken = authHeader;
 
@@ -130,5 +137,4 @@ public class AuthService {
             redisService.setBlackList(accessToken, expiration);
         }
     }
-
 }

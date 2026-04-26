@@ -9,4 +9,6 @@ public class SignupRequest{
     private String schoolEmail;
     private String password;
     private String nickname;
+    private String department;
+    private String grade;
 }

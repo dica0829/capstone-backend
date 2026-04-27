@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.jspecify.annotations.NullMarked;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -25,7 +26,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
+@NullMarked
 public class AuthController {
     private final AuthService authService;
     private final JwtUtil jwtUtil;
@@ -38,13 +39,7 @@ public class AuthController {
     @PostMapping("/signup")
     public ResponseEntity<CommonResponse<Map<String, Object>>> signup(@RequestBody @Valid SignupRequest request) {
         try {
-            User savedUser = authService.signup(
-                    request.getSchoolEmail(),
-                    request.getPassword(),
-                    request.getNickname(),
-                    request.getDepartment(),
-                    request.getGrade()
-            );
+            User savedUser = authService.signup(request);
 
             Map<String, Object> result = new HashMap<>();
             result.put("userId", savedUser.getId());
@@ -80,27 +75,22 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<CommonResponse<Map<String, Object>>> login(@RequestBody @Valid LoginRequest request) {
         try {
-            User user = authService.login(request.getSchoolEmail(), request.getPassword());
+            User user = authService.login(request);
 
-            if (user != null) {
-                Map<String, Object> result = new HashMap<>();
-                //
-                result.put("accessToken", jwtUtil.generateToken(user.getSchoolEmail()));
+            Map<String, Object> result = new HashMap<>();
+            result.put("accessToken", jwtUtil.generateToken(user.getSchoolEmail()));
+            result.put("nickname", user.getNickname());
+            result.put("department", user.getDepartment());
+            result.put("grade", user.getGrade());
+            result.put("message", "로그인 성공");
 
-                result.put("nickname", user.getNickname());
-                result.put("department", user.getDepartment());
-                result.put("grade", user.getGrade());
-                result.put("message", "로그인 성공");
-
-                return ResponseEntity.ok(CommonResponse.success(result));
-            }
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(CommonResponse.error("로그인 정보가 틀렸습니다."));
+            return ResponseEntity.ok(CommonResponse.success(result));
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(CommonResponse.error(e.getMessage()));
         }
     }
 
-    @Operation(summary = "세션 토큰 확인", description = "세션이 유효하면 연장된 토큰을 반환합니다.")
+    @Operation(summary = "액세스 토큰 확인", description = "토큰이 유효하면 연장된 토큰을 반환합니다.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "성공"),
             @ApiResponse(responseCode = "401", description = "실패")
@@ -109,7 +99,7 @@ public class AuthController {
     public ResponseEntity<CommonResponse<String>> validateAccessToken(@RequestHeader(value = "Authorization", defaultValue = "") String accessToken) {
         try {
             accessToken = accessToken.replace("Bearer ", "");
-            String newToken = authService.extendAccessToken(accessToken);
+            String newToken = authService.validateAccessToken(accessToken);
             return ResponseEntity.ok(CommonResponse.success(newToken));
         } catch (RuntimeException exception) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(CommonResponse.error(exception.getMessage()));

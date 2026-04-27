@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.Random;
 
 @Service
 @RequiredArgsConstructor
@@ -96,7 +97,7 @@ public class AuthService {
         if (userRepository.findBySchoolEmail(email).isPresent())
             throw new RuntimeException("이미 가입된 이메일입니다.");
 
-        String certificationNumber = getCertificationNumber();
+        String certificationNumber = createCertificationNumber();
 
         EmailAuth emailAuth = new EmailAuth(email, certificationNumber, createNewExpireTime(), false);
         emailAuthRepository.save(emailAuth);
@@ -122,10 +123,13 @@ public class AuthService {
     }
 
     // 6자리 난수 생성
-    private String getCertificationNumber() {
+    private String createCertificationNumber() {
         StringBuilder certificationNumber = new StringBuilder();
-        for (int i = 0; i < 6; i++) {
-            certificationNumber.append((int) (Math.random() * 10));
+        Random random = new Random();
+
+        for (int count = 0; count < 6; count++) {
+            int digit = random.nextInt(10);
+            certificationNumber.append(digit);
         }
         return certificationNumber.toString();
     }

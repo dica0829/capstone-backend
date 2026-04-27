@@ -78,7 +78,7 @@ public class AuthService {
         return null;
     }
 
-    public String extendSessionToken(String originalToken) {
+    public String extendAccessToken(String originalToken) {
         if (jwtUtil.validateToken(originalToken) && !redisService.hasKeyBlackList(originalToken)) {
             String email = jwtUtil.extractEmail(originalToken);
             userRepository.findBySchoolEmail(email)
@@ -131,14 +131,7 @@ public class AuthService {
     }
 
     // 5. 로그아웃 로직
-    public void logout(String authHeader) {
-        String accessToken = authHeader;
-
-        // 0. Bearer 접두사가 있다면 제거
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            accessToken = authHeader.substring(7);
-        }
-
+    public void logout(String accessToken) {
         // 1. 토큰 검증
         if (!jwtUtil.validateToken(accessToken)) {
             throw new RuntimeException("유효하지 않은 토큰입니다.");

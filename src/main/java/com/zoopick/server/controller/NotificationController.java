@@ -25,10 +25,10 @@ public class NotificationController {
             @ApiResponse(responseCode = "400", description = "잘못된 요청")
     })
     @PostMapping("/api/auth/device-token")
-    public ResponseEntity<CommonResponse<String>> registerFcmToken(@RequestHeader(value = "Authorization", defaultValue = "") String sessionToken, @RequestBody FcmTokenRegistrationRequest request) {
+    public ResponseEntity<CommonResponse<String>> registerFcmToken(@RequestHeader(value = "Authorization", defaultValue = "") String accessToken, @RequestBody FcmTokenRegistrationRequest request) {
         try {
-            sessionToken = sessionToken.replace("Bearer ", "");
-            notificationService.register(sessionToken, request.getToken());
+            accessToken = accessToken.replace("Bearer ", "");
+            notificationService.register(accessToken, request.getToken());
             return ResponseEntity.ok(CommonResponse.success("FCM 토큰이 등록되었습니다."));
         } catch (RuntimeException exception) {
             return ResponseEntity.badRequest().body(CommonResponse.error(exception.getMessage()));

@@ -2,6 +2,10 @@ package com.zoopick.server.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+
+import java.util.List;
 
 @Entity
 @Table(name = "users")
@@ -35,4 +39,8 @@ public class User {
 
     @Column
     private String grade;
+
+    public List<GrantedAuthority> getAuthorities() {
+        return List.of(new SimpleGrantedAuthority(role));
+    }
 }

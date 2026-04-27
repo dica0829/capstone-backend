@@ -106,10 +106,10 @@ public class AuthController {
             @ApiResponse(responseCode = "401", description = "실패")
     })
     @PostMapping("/validate")
-    public ResponseEntity<CommonResponse<String>> validateSessionToken(@RequestHeader(value = "Authorization", defaultValue = "") String token) {
+    public ResponseEntity<CommonResponse<String>> validateAccessToken(@RequestHeader(value = "Authorization", defaultValue = "") String accessToken) {
         try {
-            token = token.replace("Bearer ", "");
-            String newToken = authService.extendSessionToken(token);
+            accessToken = accessToken.replace("Bearer ", "");
+            String newToken = authService.extendAccessToken(accessToken);
             return ResponseEntity.ok(CommonResponse.success(newToken));
         } catch (RuntimeException exception) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(CommonResponse.error(exception.getMessage()));
@@ -144,14 +144,11 @@ public class AuthController {
             @ApiResponse(responseCode = "400", description = "유효하지 않은 토큰")
     })
     @PostMapping("/logout")
-    public ResponseEntity<CommonResponse<String>> logout(@RequestHeader(value = "Authorization", required = false) String headerAuth) {
+    public ResponseEntity<CommonResponse<String>> logout(@RequestHeader(value = "Authorization", defaultValue = "") String accessToken) {
         try {
-            if (headerAuth != null && headerAuth.startsWith("Bearer ")) {
-                String token = headerAuth.substring(7);
-                authService.logout(token);
-                return ResponseEntity.ok(CommonResponse.success("로그아웃이 완료되었습니다."));
-            }
-            return ResponseEntity.badRequest().body(CommonResponse.error("토큰이 존재하지 않습니다."));
+            accessToken = accessToken.replace("Bearer ", "");
+            authService.logout(accessToken);
+            return ResponseEntity.ok(CommonResponse.success("로그아웃이 완료되었습니다."));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(CommonResponse.error(e.getMessage()));
         }

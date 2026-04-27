@@ -17,8 +17,8 @@ public class NotificationService {
     private final JwtUtil jwtUtil;
     private final UserRepository userRepository;
 
-    public void register(String sessionToken, String fcmToken) {
-        String email = jwtUtil.extractEmail(sessionToken);
+    public void register(String accessToken, String fcmToken) {
+        String email = jwtUtil.extractEmail(accessToken);
         if (email == null)
             throw new IllegalStateException("세션이 유효하지 않습니다.");
         User user = userRepository.findBySchoolEmail(email)

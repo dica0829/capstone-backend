@@ -1,9 +1,8 @@
 package com.zoopick.server.util;
 
+import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -20,28 +19,22 @@ import java.nio.charset.StandardCharsets;
 @RequiredArgsConstructor
 public class EmailProvider {
     private static final String SUBJECT = "[명지대 분실물 찾기 서비스] 인증메일 입니다.";
-    private static final Log LOG = LogFactory.getLog(EmailProvider.class);
 
     @Value("classpath:/templates/email-certification.html")
     private Resource resource;
     private final JavaMailSender javaMailSender;
 
-    public void senderCertificationMail(String email, String certificationNumber) {
-        try {
-            MimeMessage message = javaMailSender.createMimeMessage();
-            MimeMessageHelper messageHelper = new MimeMessageHelper(message, true, "UTF-8");
+    public void senderCertificationMail(String email, String certificationNumber) throws MessagingException, IOException {
+        MimeMessage message = javaMailSender.createMimeMessage();
+        MimeMessageHelper messageHelper = new MimeMessageHelper(message, true, "UTF-8");
 
-            String htmlContent = getCertificationMessage(certificationNumber);
+        String htmlContent = getCertificationMessage(certificationNumber);
 
-            messageHelper.setTo(email);
-            messageHelper.setSubject(SUBJECT);
-            messageHelper.setText(htmlContent, true);
+        messageHelper.setTo(email);
+        messageHelper.setSubject(SUBJECT);
+        messageHelper.setText(htmlContent, true);
 
-            javaMailSender.send(message);
-
-        } catch (Exception exception) {
-            LOG.error(exception.getMessage(), exception);
-        }
+        javaMailSender.send(message);
     }
 
     private String getCertificationMessage(String certificationNumber) throws IOException {

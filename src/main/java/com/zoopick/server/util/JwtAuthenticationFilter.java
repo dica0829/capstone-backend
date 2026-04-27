@@ -31,7 +31,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
         String token = parseAccessToken(request);
 
-        if (tokenValidationService.isValidToken(token)) {
+        if (tokenValidationService.validateToken(token)) {
             String email = jwtUtil.extractEmail(token);
             User user = userRepository.findBySchoolEmail(email).orElseThrow();
 

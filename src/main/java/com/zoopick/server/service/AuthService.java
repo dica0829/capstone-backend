@@ -6,16 +6,21 @@ import com.zoopick.server.dto.auth.LoginRequest;
 import com.zoopick.server.dto.auth.SignupRequest;
 import com.zoopick.server.entity.EmailAuth;
 import com.zoopick.server.entity.User;
+import com.zoopick.server.exception.AccessTokenException;
+import com.zoopick.server.exception.BadRequestException;
+import com.zoopick.server.exception.DataNotFoundException;
 import com.zoopick.server.repository.EmailAuthRepository;
 import com.zoopick.server.repository.UserRepository;
 import com.zoopick.server.util.EmailProvider;
 import com.zoopick.server.util.JwtUtil;
+import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NullMarked;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Random;
 
@@ -39,14 +44,11 @@ public class AuthService {
 
     public User signup(SignupRequest request) {
         EmailAuth emailAuth = emailAuthRepository.findById(request.getSchoolEmail())
-                .orElseThrow(() -> new IllegalStateException("이메일 인증을 진행해주세요."));
-
-        if (!emailAuth.isVerified()) {
-            throw new IllegalStateException("이메일 인증이 완료되지 않았습니다.");
-        }
-        if (userRepository.findByNickname(request.getNickname()).isPresent()) {
-            throw new IllegalStateException("이미 사용중인 닉네임입니다.");
-        }
+                .orElseThrow(() -> new BadRequestException("이메일 인증을 진행해주세요.", request.getSchoolEmail() + " is not certificated."));
+        if (!emailAuth.isVerified())
+            throw new BadRequestException("이메일 인증이 완료되지 않았습니다.", request.getSchoolEmail() + " is not verified.");
+        if (userRepository.findByNickname(request.getNickname()).isPresent())
+            throw new BadRequestException("이미 사용중인 닉네임입니다.", request.getNickname() + " is already in use.");
 
         User user = User.builder()
                 .schoolEmail(request.getSchoolEmail())
@@ -69,11 +71,11 @@ public class AuthService {
 
     public User login(LoginRequest request) {
         User user = userRepository.findBySchoolEmail(request.getSchoolEmail())
-                .orElseThrow(() -> new IllegalStateException("사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new DataNotFoundException(DataNotFoundException.Subject.USER, request.getSchoolEmail() + " is not in UserRepository"));
 
         if (passwordEncoder.matches(request.getPassword(), user.getPassword()))
             return user;
-        throw new IllegalStateException("비밀번호가 일치하지 않습니다.");
+        throw new BadRequestException("비밀번호가 일치하지 않습니다.", request.getSchoolEmail() + " failed password.");
     }
 
     /**
@@ -83,22 +85,23 @@ public class AuthService {
      * @return 만료 시간이 갱신된 새로운 토큰
      */
     public String validateAccessToken(String originalToken) {
-        if (tokenValidationService.isValidToken(originalToken)) {
+        if (tokenValidationService.validateTokenOrThrow(originalToken)) {
             String email = jwtUtil.extractEmail(originalToken);
             userRepository.findBySchoolEmail(email)
-                    .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+                    .orElseThrow(() -> new DataNotFoundException(DataNotFoundException.Subject.USER, email + " is not in UserRepository"));
             tokenValidationService.invalidateToken(originalToken);
             return jwtUtil.generateToken(email);
         }
-        throw new IllegalStateException("토큰이 유효하지 않습니다.");
+        throw new AccessTokenException(tokenValidationService.findInvalidCause(originalToken));
     }
 
     @Transactional
-    public void sendCertificationEmail(EmailCertificationRequest request) {
+    public void sendCertificationEmail(EmailCertificationRequest request)
+            throws MessagingException, IOException {
         String email = request.getEmail();
 
         if (userRepository.findBySchoolEmail(email).isPresent())
-            throw new IllegalStateException("이미 가입된 이메일입니다.");
+            throw new BadRequestException("이미 가입된 이메일입니다.", email + " is already in use.");
 
         String certificationNumber = generateCertificationNumber();
 
@@ -111,14 +114,18 @@ public class AuthService {
     @Transactional
     public void verifyCertificationCode(CheckCertificationRequest request) {
         EmailAuth emailAuth = emailAuthRepository.findById(request.getEmail())
-                .orElseThrow(() -> new IllegalStateException("인증 요청 기록이 없습니다."));
+                .orElseThrow(() -> new BadRequestException("인증 요청 기록이 없습니다.", request.getEmail() + " did not request certification yet."));
 
         if (!emailAuth.getCertificationNumber().equals(request.getCertificationNumber())) {
-            throw new IllegalStateException("인증번호가 일치하지 않습니다.");
+            throw new BadRequestException(
+                    "인증번호가 일치하지 않습니다.",
+                    "Certification code does not match. (expected: %s, found: %s)"
+                            .formatted(emailAuth.getCertificationNumber(), request.getCertificationNumber())
+            );
         }
         if (emailAuth.isExpired()) {
             emailAuthRepository.delete(emailAuth);
-            throw new IllegalStateException("이메일 인증이 만료되었습니다.");
+            throw new BadRequestException("이메일 인증이 만료되었습니다.", request.getEmail() + " has expired for certification.");
         }
         emailAuth.setVerified(true);
         emailAuthRepository.save(emailAuth);
@@ -136,8 +143,8 @@ public class AuthService {
     }
 
     public void logout(String accessToken) {
-        if (!tokenValidationService.isValidToken(accessToken))
-            throw new IllegalStateException("유효하지 않은 토큰입니다.");
+        if (!tokenValidationService.validateTokenOrThrow(accessToken))
+            throw new AccessTokenException(tokenValidationService.findInvalidCause(accessToken));
 
         tokenValidationService.invalidateToken(accessToken);
     }

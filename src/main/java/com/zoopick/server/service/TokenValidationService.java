@@ -1,5 +1,6 @@
 package com.zoopick.server.service;
 
+import com.zoopick.server.exception.AccessTokenException;
 import com.zoopick.server.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NullMarked;
@@ -25,7 +26,7 @@ public class TokenValidationService {
      *
      * @param accessToken 무효화할 투콘
      */
-    public void invalidateToken(String accessToken) {
+    public void invalidateToken(String accessToken) throws AccessTokenException {
         long expirationTime = jwtUtil.getRemainingExpirationTime(accessToken);
         if (expirationTime > 0) {
             template.opsForValue().set(
@@ -41,9 +42,34 @@ public class TokenValidationService {
      *
      * @param accessToken 확인할 토큰
      * @return True 일 시 유효한 토큰
+     * @throws AccessTokenException 토큰이 유효하지 않을 때
      * @see JwtUtil#validateToken(String)
+     * @see #validateToken(String)
      */
-    public boolean isValidToken(String accessToken) {
+    public boolean validateTokenOrThrow(String accessToken) {
         return !template.hasKey(accessToken) && jwtUtil.validateToken(accessToken);
+    }
+
+    /**
+     * 예외 없이 토큰의 요효성 확인
+     *
+     * @param accessToken 확인할 토큰
+     * @return True 일 시 유효한 토큰
+     * @see #validateTokenOrThrow(String)
+     */
+    public boolean validateToken(String accessToken) {
+        try {
+            return validateTokenOrThrow(accessToken);
+        } catch (AccessTokenException exception) {
+            return false;
+        }
+    }
+
+    public String findInvalidCause(String accessToken) {
+        if (template.hasKey(accessToken))
+            return "invalidated token";
+        if (jwtUtil.validateToken(accessToken))
+            return "valid token";
+        return "expired token";
     }
 }

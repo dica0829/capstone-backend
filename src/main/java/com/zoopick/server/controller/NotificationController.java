@@ -10,12 +10,14 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.jspecify.annotations.NullMarked;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "Notification API", description = "FCM 토큰을 등록 및 알림 전송")
 @RestController
 @RequiredArgsConstructor
+@NullMarked
 public class NotificationController {
     private final NotificationService notificationService;
 
@@ -25,28 +27,27 @@ public class NotificationController {
             @ApiResponse(responseCode = "400", description = "잘못된 요청")
     })
     @PostMapping("/api/auth/device-token")
-    public ResponseEntity<CommonResponse<String>> registerFcmToken(@RequestHeader(value = "Authorization", defaultValue = "") String accessToken, @RequestBody FcmTokenRegistrationRequest request) {
-        try {
-            accessToken = accessToken.replace("Bearer ", "");
-            notificationService.register(accessToken, request.getToken());
-            return ResponseEntity.ok(CommonResponse.success("FCM 토큰이 등록되었습니다."));
-        } catch (RuntimeException exception) {
-            return ResponseEntity.badRequest().body(CommonResponse.error(exception.getMessage()));
-        }
+    public ResponseEntity<CommonResponse<String>> registerFcmToken(
+            @RequestHeader(value = "Authorization", defaultValue = "") String accessToken,
+            @RequestBody FcmTokenRegistrationRequest request
+    ) {
+        accessToken = accessToken.replace("Bearer ", "");
+        notificationService.register(accessToken, request.getToken());
+        return ResponseEntity.ok(CommonResponse.success("FCM 토큰이 등록되었습니다."));
     }
 
     @Operation(summary = "대상에게 알림 전송", description = "클라이언트로 알림을 보냅니다. (ADMIN)")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "FCM 토큰 등록 성공"),
-            @ApiResponse(responseCode = "400", description = "잘못된 요청")
+            @ApiResponse(responseCode = "200", description = "알림 전송 성공"),
+            @ApiResponse(responseCode = "404", description = "닉네임을 찾을 수 없음"),
+            @ApiResponse(responseCode = "500", description = "FirebaseMessaging 오류")
     })
     @PostMapping("/admin/send/{targetNickname}")
-    public ResponseEntity<CommonResponse<String>> sendNotification(@PathVariable("targetNickname") String targetNickname, @RequestBody FcmNotificationRequest request) {
-        try {
-            String result = notificationService.send(targetNickname, request);
-            return ResponseEntity.ok(CommonResponse.success(result));
-        } catch (FirebaseMessagingException exception) {
-            return ResponseEntity.badRequest().body(CommonResponse.error(exception.getMessage()));
-        }
+    public ResponseEntity<CommonResponse<String>> sendNotification(
+            @PathVariable("targetNickname") String targetNickname,
+            @RequestBody FcmNotificationRequest request
+    ) throws FirebaseMessagingException {
+        String result = notificationService.send(targetNickname, request);
+        return ResponseEntity.ok(CommonResponse.success(result));
     }
 }

@@ -7,6 +7,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Getter
 @Setter
@@ -18,5 +20,11 @@ public class EmailAuth {
 
     private String certificationNumber;
 
+    private LocalDateTime expireTime;
+
     private boolean isVerified = false;
+
+    public boolean isExpired() {
+        return expireTime.isBefore(LocalDateTime.now());
+    }
 }

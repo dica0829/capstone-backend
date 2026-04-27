@@ -13,17 +13,25 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class AuthService {
+    // Expiration duration in minutes
+    private static final int EXPIRATION_DURATION = 3;
+
     private final UserRepository userRepository;
     private final EmailAuthRepository emailAuthRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailProvider emailProvider;
     private final JwtUtil jwtUtil;
     private final RedisService redisService;
+
+    private static LocalDateTime createNewExpireTime() {
+        return LocalDateTime.now().plusHours(EXPIRATION_DURATION);
+    }
 
     // 1. 회원가입
     public User signup(String email, String password, String nickname, String department, String grade) {
@@ -33,7 +41,6 @@ public class AuthService {
         if (!emailAuth.isVerified()) {
             throw new RuntimeException("이메일 인증이 완료되지 않았습니다.");
         }
-
         if (userRepository.findByNickname(nickname).isPresent()) {
             throw new RuntimeException("이미 사용중인 닉네임입니다.");
         }
@@ -91,7 +98,7 @@ public class AuthService {
 
         String certificationNumber = getCertificationNumber();
 
-        EmailAuth emailAuth = new EmailAuth(email, certificationNumber, false);
+        EmailAuth emailAuth = new EmailAuth(email, certificationNumber, createNewExpireTime(), false);
         emailAuthRepository.save(emailAuth);
 
         emailProvider.senderCertificationMail(email, certificationNumber);
@@ -105,6 +112,10 @@ public class AuthService {
 
         if (!emailAuth.getCertificationNumber().equals(request.getCertificationNumber())) {
             throw new RuntimeException("인증번호가 일치하지 않습니다.");
+        }
+        if (emailAuth.isExpired()) {
+            emailAuthRepository.delete(emailAuth);
+            throw new IllegalStateException("이메일 인증이 만료되었습니다.");
         }
         emailAuth.setVerified(true);
         emailAuthRepository.save(emailAuth);

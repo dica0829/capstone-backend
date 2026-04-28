@@ -9,9 +9,11 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NullMarked;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "Notification API", description = "FCM 토큰을 등록 및 알림 전송")
@@ -29,7 +31,7 @@ public class NotificationController {
     @PostMapping("/api/auth/device-token")
     public ResponseEntity<CommonResponse<String>> registerFcmToken(
             @RequestHeader(value = "Authorization", defaultValue = "") String accessToken,
-            @RequestBody FcmTokenRegistrationRequest request
+            @RequestBody @Valid FcmTokenRegistrationRequest request
     ) {
         accessToken = accessToken.replace("Bearer ", "");
         notificationService.register(accessToken, request.getToken());
@@ -43,9 +45,10 @@ public class NotificationController {
             @ApiResponse(responseCode = "500", description = "FirebaseMessaging 오류")
     })
     @PostMapping("/admin/send/{targetNickname}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<CommonResponse<String>> sendNotification(
             @PathVariable("targetNickname") String targetNickname,
-            @RequestBody FcmNotificationRequest request
+            @RequestBody @Valid FcmNotificationRequest request
     ) throws FirebaseMessagingException {
         String result = notificationService.send(targetNickname, request);
         return ResponseEntity.ok(CommonResponse.success(result));

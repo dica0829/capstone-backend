@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 
 @Component
@@ -21,7 +22,7 @@ public class JwtUtil {
     private final SecretKey secretKey;
 
     public JwtUtil(@Value("${jwt.secret}") String secret) {
-        secretKey = Keys.hmacShaKeyFor(secret.getBytes());
+        secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     }
 
     public String generateToken(String email) {
@@ -42,11 +43,11 @@ public class JwtUtil {
      * 토큰의 무효화 검사가 필요할 경우 {@link com.zoopick.server.service.TokenValidationService#validateTokenOrThrow(String)} 사용
      *
      * @param token 검사할 토큰
-     * @return True 일 시 유효한 토큰
+     * @return True 일 시 만료된 토큰
      * @throws AccessTokenException 토큰이 유효하지 않음
      * @see com.zoopick.server.service.TokenValidationService#validateTokenOrThrow(String)
      */
-    public boolean validateToken(String token) {
+    public boolean isExpirationValid(String token) {
         return !getClaims(token).getExpiration().before(new Date());
     }
 

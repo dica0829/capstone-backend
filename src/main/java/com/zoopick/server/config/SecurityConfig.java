@@ -40,7 +40,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/auth/certification", "/api/auth/check-certification", "/api/auth/verify").permitAll()
 
                 // 2. 관리자 및 기타
-                .requestMatchers("/admin").hasRole("ADMIN")
+                .requestMatchers("/admin/**").hasRole("ADMIN")
 
                 // 3. 그 외 모든 API (로그아웃, 내 정보 조회 등)는 반드시 '인증' 필요
                 .anyRequest().authenticated());

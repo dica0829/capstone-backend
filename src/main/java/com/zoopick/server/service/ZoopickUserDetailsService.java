@@ -25,7 +25,7 @@ public class ZoopickUserDetailsService implements UserDetailsService {
         return org.springframework.security.core.userdetails.User.builder()
                 .username(username)
                 .password(user.getPassword())
-                .roles(user.getRole())
+                .authorities(user.getAuthorities())
                 .build();
     }
 }

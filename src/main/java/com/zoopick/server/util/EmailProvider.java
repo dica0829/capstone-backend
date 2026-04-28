@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StreamUtils;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
 @Async
@@ -40,7 +41,9 @@ public class EmailProvider {
     }
 
     private String getCertificationMessage(String certificationNumber) throws IOException {
-        String template = StreamUtils.copyToString(resource.getInputStream(), StandardCharsets.UTF_8);
-        return template.replace("${certificationNumber}", certificationNumber);
+        try (InputStream inputStream = resource.getInputStream()) {
+            String template = StreamUtils.copyToString(inputStream, StandardCharsets.UTF_8);
+            return template.replace("${certificationNumber}", certificationNumber);
+        }
     }
 }

@@ -75,11 +75,11 @@ public class AuthService {
 
     public User login(LoginRequest request) {
         User user = userRepository.findBySchoolEmail(request.getSchoolEmail())
-                .orElseThrow(() -> new DataNotFoundException(DataNotFoundException.Subject.USER, request.getSchoolEmail() + " is not in UserRepository"));
+                .orElseThrow(() -> new BadRequestException("로그인에 실패했습니다.", request.getSchoolEmail() + " is not in UserRepository"));
 
         if (passwordEncoder.matches(request.getPassword(), user.getPassword()))
             return user;
-        throw new BadRequestException("비밀번호가 일치하지 않습니다.", request.getSchoolEmail() + " failed password.");
+        throw new BadRequestException("로그인에 실패했습니다.", request.getSchoolEmail() + " failed password.");
     }
 
     /**
@@ -96,7 +96,7 @@ public class AuthService {
             tokenValidationService.invalidateToken(originalToken);
             return jwtUtil.generateToken(email);
         }
-        throw new AccessTokenException(tokenValidationService.findInvalidCause(originalToken));
+        throw new AccessTokenException(originalToken + " is expired or invalidated.");
     }
 
     @Transactional
@@ -123,8 +123,7 @@ public class AuthService {
         if (!emailAuth.getCertificationCode().equals(request.getCertificationNumber())) {
             throw new BadRequestException(
                     "인증번호가 일치하지 않습니다.",
-                    "Certification code does not match. (expected: %s, found: %s)"
-                            .formatted(emailAuth.getCertificationCode(), request.getCertificationNumber())
+                    "%s's Certification code does not match.".formatted(emailAuth.getEmail())
             );
         }
         if (emailAuth.isCertificationCodeExpired()) {
@@ -148,7 +147,7 @@ public class AuthService {
 
     public void logout(String accessToken) {
         if (!tokenValidationService.validateTokenOrThrow(accessToken))
-            throw new AccessTokenException(tokenValidationService.findInvalidCause(accessToken));
+            throw new AccessTokenException(accessToken + " is expired or invalidated.");
 
         tokenValidationService.invalidateToken(accessToken);
     }

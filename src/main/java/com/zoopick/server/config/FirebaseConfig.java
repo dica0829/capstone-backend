@@ -5,6 +5,8 @@ import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.Nullable;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 
 import java.io.FileInputStream;
@@ -13,12 +15,15 @@ import java.io.IOException;
 @Slf4j
 @Configuration
 public class FirebaseConfig {
+    @Nullable
+    @Value("${firebase.account_key.path}")
+    private String accountKeyPath;
+
     @PostConstruct
     public void setupFirebase() {
-        if (!System.getenv().containsKey("FIREBASE_ACCOUNT_KEY_PATH"))
-            throw new IllegalStateException("Environment variable FIREBASE_ACCOUNT_KEY_PATH is not set!");
+        if (accountKeyPath == null)
+            throw new IllegalStateException("firebase.account_key.path is not set!");
         try {
-            String accountKeyPath = System.getenv("FIREBASE_ACCOUNT_KEY_PATH");
             FileInputStream serviceAccount = new FileInputStream(accountKeyPath);
 
             FirebaseOptions options = FirebaseOptions.builder()

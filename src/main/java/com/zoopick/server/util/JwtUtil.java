@@ -4,7 +4,9 @@ import com.zoopick.server.exception.AccessTokenException;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
 import org.jspecify.annotations.NullMarked;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
@@ -16,7 +18,11 @@ public class JwtUtil {
     // 토큰 만료 시간 1일
     private static final long EXPIRATION_TIME = 1000 * 60 * 60 * 24;
 
-    private final SecretKey secretKey = Jwts.SIG.HS256.key().build();
+    private final SecretKey secretKey;
+
+    public JwtUtil(@Value("${jwt.secret}") String secret) {
+        secretKey = Keys.hmacShaKeyFor(secret.getBytes());
+    }
 
     public String generateToken(String email) {
         return Jwts.builder()

@@ -17,6 +17,8 @@ export SPRING_DATASOURCE_PASSWORD=password
 export SPRING_MAIL_USERNAME=example@example.com
 export SPRING_MAIL_PASSWORD=password
 export FIREBASE_ACCOUNT_KEY_PATH=/path/to/firebase-adminsdk.json
+# 32 바이트 이상
+export JWT_SECRET=secret
 ```
 
 ### 빌드

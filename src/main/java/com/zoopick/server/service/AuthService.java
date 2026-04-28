@@ -47,6 +47,10 @@ public class AuthService {
                 .orElseThrow(() -> new BadRequestException("이메일 인증을 진행해주세요.", request.getSchoolEmail() + " is not certificated."));
         if (!emailAuth.isVerified())
             throw new BadRequestException("이메일 인증이 완료되지 않았습니다.", request.getSchoolEmail() + " is not verified.");
+        if (emailAuth.isSignupExpired()) {
+            emailAuthRepository.delete(emailAuth);
+            throw new BadRequestException("인증 코드가 만료되었습니다.", request.getSchoolEmail() + " is signup expired.");
+        }
         if (userRepository.findByNickname(request.getNickname()).isPresent())
             throw new BadRequestException("이미 사용중인 닉네임입니다.", request.getNickname() + " is already in use.");
 
@@ -116,14 +120,14 @@ public class AuthService {
         EmailAuth emailAuth = emailAuthRepository.findById(request.getEmail())
                 .orElseThrow(() -> new BadRequestException("인증 요청 기록이 없습니다.", request.getEmail() + " did not request certification yet."));
 
-        if (!emailAuth.getCertificationNumber().equals(request.getCertificationNumber())) {
+        if (!emailAuth.getCertificationCode().equals(request.getCertificationNumber())) {
             throw new BadRequestException(
                     "인증번호가 일치하지 않습니다.",
                     "Certification code does not match. (expected: %s, found: %s)"
-                            .formatted(emailAuth.getCertificationNumber(), request.getCertificationNumber())
+                            .formatted(emailAuth.getCertificationCode(), request.getCertificationNumber())
             );
         }
-        if (emailAuth.isExpired()) {
+        if (emailAuth.isCertificationCodeExpired()) {
             emailAuthRepository.delete(emailAuth);
             throw new BadRequestException("이메일 인증이 만료되었습니다.", request.getEmail() + " has expired for certification.");
         }

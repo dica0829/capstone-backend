@@ -18,13 +18,17 @@ public class EmailAuth {
     @Id
     private String email;
 
-    private String certificationNumber;
+    private String certificationCode;
 
     private LocalDateTime expireTime;
 
     private boolean isVerified = false;
 
-    public boolean isExpired() {
+    public boolean isCertificationCodeExpired() {
         return expireTime.isBefore(LocalDateTime.now());
+    }
+
+    public boolean isSignupExpired() {
+        return expireTime.plusMinutes(30).isBefore(LocalDateTime.now());
     }
 }

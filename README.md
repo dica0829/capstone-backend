@@ -1,24 +1,24 @@
 # Zoopick Server
 
-- Redis 서비스가 로컬에서 실행 중이어야 합니다.
+- Redis 서비스는 로컬에서 실행 중이어야 합니다.
 
 ### 환경변수
 
 ```bash .env
-# Optional
+# Optional ==============================
 # default: jdbc:postgresql://mir.lalaalal.com:5432/zoopick
-export SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/zoopick
+SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/zoopick
 # default: false
-export SPRING_JPA_SHOW_SQL=true
+SPRING_JPA_SHOW_SQL=false
 
-# Mandatory
-export SPRING_DATASOURCE_USERNAME=username
-export SPRING_DATASOURCE_PASSWORD=password
-export SPRING_MAIL_USERNAME=example@example.com
-export SPRING_MAIL_PASSWORD=password
-export FIREBASE_ACCOUNT_KEY_PATH=/path/to/firebase-adminsdk.json
+# Mandatory =============================
+SPRING_DATASOURCE_USERNAME=username
+SPRING_DATASOURCE_PASSWORD=password
+SPRING_MAIL_USERNAME=example@example.com
+SPRING_MAIL_PASSWORD=password
+FIREBASE_ACCOUNT_KEY_PATH=/path/to/firebase-adminsdk.json
 # 32 바이트 이상
-export JWT_SECRET=secret
+JWT_SECRET=secret
 ```
 
 ### 빌드
@@ -30,7 +30,7 @@ export JWT_SECRET=secret
 ### 실행
 
 ```bash
-# source .env
+# setup env first
 cd target
 java -jar zoopick-server-x.x.x.jar
 ```

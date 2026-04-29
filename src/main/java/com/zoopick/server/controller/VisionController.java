@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("api/vision")
+@RequestMapping("/api/vision")
 @RequiredArgsConstructor
 public class VisionController {
     private final VisionService visionService;

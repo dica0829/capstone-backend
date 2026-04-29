@@ -1,0 +1,41 @@
+package com.zoopick.server.service;
+
+import com.zoopick.server.config.FastApiProperties;
+import com.zoopick.server.exception.BadRequestException;
+import com.zoopick.server.exception.DataNotFoundException;
+import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+
+import com.zoopick.server.dto.vision.VisionAnalyzeRequest;
+import com.zoopick.server.dto.vision.VisionAnalyzeResponse;
+
+import lombok.RequiredArgsConstructor;
+
+@Service
+@RequiredArgsConstructor
+public class VisionService {
+    private final RestTemplate fastApiRestTemplate;
+    private final FastApiProperties fastApiProperties;
+
+    public VisionAnalyzeResponse analyzeImage(String imageUrl) {
+        if (imageUrl == null || imageUrl.isBlank()) {
+            throw new BadRequestException("이미지 URL이 올바르지 않습니다.", "imageUrl is null or blank");
+        }
+
+        VisionAnalyzeRequest request = new VisionAnalyzeRequest(imageUrl);
+        String url = fastApiProperties.getBaseUrl() +
+                fastApiProperties.getVision().getAnalyzePath();
+
+        try {
+            VisionAnalyzeResponse response = fastApiRestTemplate.postForObject(url, request, VisionAnalyzeResponse.class);
+            if (response == null) {
+                throw new DataNotFoundException("분석 결과", imageUrl);
+            }
+            return response;
+        } catch (BadRequestException | DataNotFoundException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new BadRequestException("FastAPI 요청 중 오류가 발생했습니다.", e.getMessage());
+        }
+    }
+}

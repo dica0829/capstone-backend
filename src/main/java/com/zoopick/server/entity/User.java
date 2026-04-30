@@ -23,23 +23,23 @@ public class User {
     @Column(name = "school_email", nullable = false, unique = true)
     private String schoolEmail;
 
-    @Column
+    @Column(nullable = false)
     private String password;
 
-    @Column(unique = true)
+    @Column(length = 50, nullable = false, unique = true)
     private String nickname;
 
-    @Column(name = "fcm_token")
+    @Column(name = "fcm_token", length = 512)
     @Nullable
     private String fcmToken;
 
     @Column
     private String role;
 
-    @Column
+    @Column(length = 50, nullable = false)
     private String department;
 
-    @Column
+    @Column(length = 20, nullable = false)
     private String grade;
 
     public List<GrantedAuthority> getAuthorities() {

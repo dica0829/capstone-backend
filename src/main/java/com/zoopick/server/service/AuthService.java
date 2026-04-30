@@ -63,7 +63,9 @@ public class AuthService {
         User savedUser = userRepository.save(user);
         emailAuthRepository.delete(emailAuth);
 
-        return new SignupResult(savedUser.getId(), "회원가입이 완료되었습니다.");
+        String accessToken = jwtUtil.generateToken(savedUser.getSchoolEmail());
+
+        return new SignupResult(savedUser.getId(), "회원가입이 완료되었습니다.", accessToken);
     }
 
     public NicknameCheckResult checkNickname(String nickname) {

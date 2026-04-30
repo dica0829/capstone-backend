@@ -12,4 +12,6 @@ public class SignupResult {
     @JsonProperty("user_id")
     private long userId;
     private String message;
+    @JsonProperty("access_token")
+    private String accessToken;
 }

@@ -5,16 +5,20 @@ import com.zoopick.server.entity.ItemCategory;
 import com.zoopick.server.entity.ItemColor;
 import com.zoopick.server.entity.ItemPost;
 import com.zoopick.server.entity.ItemStatus;
+import jakarta.persistence.criteria.Join;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.stereotype.Repository;
 
+@Repository
 public interface ItemPostRepository extends JpaRepository<ItemPost, Long>, JpaSpecificationExecutor<ItemPost> {
     static Specification<ItemPost> hasStatus(ItemStatus status) {
         return (root, query, criteriaBuilder) -> {
             if (status == null)
                 return null;
-            return criteriaBuilder.equal(root.get("status"), status);
+            Join<Object, Object> itemJoin = root.join("item");
+            return criteriaBuilder.equal(itemJoin.get("category").get("status"), status);
         };
     }
 
@@ -22,7 +26,8 @@ public interface ItemPostRepository extends JpaRepository<ItemPost, Long>, JpaSp
         return (root, query, criteriaBuilder) -> {
             if (category == null)
                 return null;
-            return criteriaBuilder.equal(root.get("category"), category);
+            Join<Object, Object> itemJoin = root.join("item");
+            return criteriaBuilder.equal(itemJoin.get("category"), category);
         };
     }
 
@@ -30,11 +35,14 @@ public interface ItemPostRepository extends JpaRepository<ItemPost, Long>, JpaSp
         return (root, query, criteriaBuilder) -> {
             if (color == null)
                 return null;
-            return criteriaBuilder.equal(root.get("color"), color);
+            Join<Object, Object> itemJoin = root.join("item");
+            return criteriaBuilder.equal(itemJoin.get("category").get("color"), color);
         };
     }
 
     static Specification<ItemPost> applyFilter(ItemPostFilter filter) {
+        if (filter == null)
+            return Specification.unrestricted();
         return Specification.where(hasStatus(filter.getStatus()))
                 .and(hasCategory(filter.getCategory()))
                 .and(hasColor(filter.getColor()));

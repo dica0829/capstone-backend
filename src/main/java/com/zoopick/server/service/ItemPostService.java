@@ -10,6 +10,7 @@ import com.zoopick.server.repository.ItemRepository;
 import com.zoopick.server.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -57,7 +58,7 @@ public class ItemPostService {
         return new CreateItemPostResult(savedItemPost.getId(), savedItem.getStatus(), "등록되었습니다.");
     }
 
-    public ListItemPostResult getItemPosts(ItemPostFilter filter, Pageable pageable) {
+    public ListItemPostResult getItemPosts(@Nullable ItemPostFilter filter, Pageable pageable) {
         Page<ItemPost> page = itemPostRepository.findAll(ItemPostRepository.applyFilter(filter), pageable);
         List<ItemPostRecord> itemPostRecords = page.stream().map(itemPostMapper::toItemPostRecord)
                 .toList();

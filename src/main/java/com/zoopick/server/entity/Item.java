@@ -2,6 +2,7 @@ package com.zoopick.server.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.Array;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
@@ -24,24 +25,29 @@ public class Item {
     private User reporter;
 
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(nullable = false, columnDefinition = "item_type")
     private ItemType type;
 
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(nullable = false, columnDefinition = "item_status")
     @Builder.Default
     private ItemStatus status = ItemStatus.REPORTED;
 
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(columnDefinition = "item_category")
     private ItemCategory category;
 
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(columnDefinition = "item_color")
     private ItemColor color;
 
-    @JdbcTypeCode(SqlTypes.VECTOR)
     @Column(columnDefinition = "vector(512)")
+    @JdbcTypeCode(SqlTypes.VECTOR)
+    @Array(length = 512)
     private float[] embedding;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -68,5 +74,6 @@ public class Item {
     private LocalDateTime createdAt = LocalDateTime.now();
 
     @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
+    @Builder.Default
+    private LocalDateTime updatedAt = LocalDateTime.now();
 }

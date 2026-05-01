@@ -42,6 +42,8 @@ public class SecurityConfig {
                 .requestMatchers("/api/auth/login", "/api/auth/signup", "/api/auth/check-nickname", "/api/auth/validate").permitAll()
                 .requestMatchers("/api/auth/certification", "/api/auth/check-certification", "/api/auth/verify").permitAll()
 
+                .requestMatchers("/api/items/post/list/**").permitAll()
+
                 // 2. 관리자 및 기타
                 .requestMatchers("/admin/**").hasRole("ADMIN")
 

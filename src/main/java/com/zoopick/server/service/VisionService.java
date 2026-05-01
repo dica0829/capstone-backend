@@ -4,6 +4,7 @@ import com.zoopick.server.config.FastApiProperties;
 import com.zoopick.server.exception.BadRequestException;
 import com.zoopick.server.exception.DataNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestTemplate;
 
 import com.zoopick.server.dto.vision.VisionAnalyzeRequest;
@@ -14,7 +15,7 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class VisionService {
-    private final RestTemplate fastApiRestTemplate;
+    private final RestClient fastApiRestClient;
     private final FastApiProperties fastApiProperties;
 
     public VisionAnalyzeResponse analyzeImage(String imageUrl) {
@@ -27,7 +28,11 @@ public class VisionService {
                 fastApiProperties.getVision().getAnalyzePath();
 
         try {
-            VisionAnalyzeResponse response = fastApiRestTemplate.postForObject(url, request, VisionAnalyzeResponse.class);
+            VisionAnalyzeResponse response = fastApiRestClient.post()
+                    .uri(url)
+                    .body(request)
+                    .retrieve()
+                    .body(VisionAnalyzeResponse.class);
             if (response == null) {
                 throw new DataNotFoundException("분석 결과", imageUrl);
             }

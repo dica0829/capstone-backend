@@ -2,6 +2,7 @@ package com.zoopick.server.service;
 
 import com.zoopick.server.dto.auth.*;
 import com.zoopick.server.entity.EmailAuth;
+import com.zoopick.server.entity.Role;
 import com.zoopick.server.entity.User;
 import com.zoopick.server.exception.AccessTokenException;
 import com.zoopick.server.exception.BadRequestException;
@@ -55,7 +56,7 @@ public class AuthService {
                 .schoolEmail(request.getSchoolEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .nickname(request.getNickname())
-                .role("ROLE_STUDENT")
+                .role(Role.ROLE_STUDENT)
                 .department(request.getDepartment())
                 .grade(request.getGrade())
                 .build();

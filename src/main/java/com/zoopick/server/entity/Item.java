@@ -2,7 +2,10 @@ package com.zoopick.server.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import java.time.OffsetDateTime;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "items")
@@ -16,34 +19,51 @@ public class Item {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
-    private String title; //제목 추가
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "reporter_id", nullable = false)
+    private User reporter;
 
-    @Column(nullable = false, length = 20)
-    private String type;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, columnDefinition = "item_type")
+    private ItemType type;
 
-    @Column(nullable = false)
-    private String category;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, columnDefinition = "item_status")
+    @Builder.Default
+    private ItemStatus status = ItemStatus.REPORTED;
 
-    private String color;
+    @Enumerated(EnumType.STRING)
+    @Column(columnDefinition = "item_category")
+    private ItemCategory category;
 
-    @Column(columnDefinition = "TEXT")
-    private String description;
+    @Enumerated(EnumType.STRING)
+    @Column(columnDefinition = "item_color")
+    private ItemColor color;
 
-    @Column(name = "location_name")
-    private String locationName; // 위치명 추가
-
-    private String imageUrl;
-
-    private Double latitude;
-    private Double longitude;
-
-    private OffsetDateTime reportedAt;
+    @JdbcTypeCode(SqlTypes.VECTOR)
+    @Column(columnDefinition = "vector(512)")
+    private float[] embedding;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "reporter_id")
-    private User reporter; // 신고자 ID 추가
+    @JoinColumn(name = "reported_building_id")
+    private Building reportedBuilding;
 
+    @Column(name = "reported_at")
+    private LocalDateTime reportedAt;
+
+    @Column(name = "theft_suspected_at")
+    private LocalDateTime theftSuspectedAt;
+
+    @Column(name = "returned_at")
+    private LocalDateTime returnedAt;
+
+    @Column(name = "image_url", length = 500)
+    private String imageUrl;
+
+    @Column(name = "created_at", nullable = false, updatable = false)
     @Builder.Default
-    private String status = "REPORTED";
+    private LocalDateTime createdAt = LocalDateTime.now();
+
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
 }

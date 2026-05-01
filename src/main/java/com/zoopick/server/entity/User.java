@@ -33,8 +33,9 @@ public class User {
     @Nullable
     private String fcmToken;
 
-    @Column
-    private String role;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Role role;
 
     @Column(length = 50, nullable = false)
     private String department;
@@ -43,6 +44,6 @@ public class User {
     private String grade;
 
     public List<GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority(role));
+        return List.of(new SimpleGrantedAuthority(role.name()));
     }
 }

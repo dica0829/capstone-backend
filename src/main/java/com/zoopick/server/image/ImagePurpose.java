@@ -8,4 +8,8 @@ public enum ImagePurpose {
     public Path getPath(Path root) {
         return root.resolve(this.name().toLowerCase());
     }
+
+    public String getUrl() {
+        return "/images/" + this.name().toLowerCase() + "/";
+    }
 }

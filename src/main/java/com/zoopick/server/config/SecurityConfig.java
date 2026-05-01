@@ -35,7 +35,7 @@ public class SecurityConfig {
                 // 1. 누구나 접근 가능한 경로 (로그인 전)
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
                 .requestMatchers("/", "/Login", "/join").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/images/*").permitAll()
+                .requestMatchers(HttpMethod.GET, "/images/**").permitAll()
 
                 // Vision 및 CCTV API 허용 (테스트용)
                 .requestMatchers("/api/vision/**", "/api/cctv/**").permitAll()

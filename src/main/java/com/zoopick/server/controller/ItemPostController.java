@@ -17,7 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-@Tag(name = "아이템 게시판 API", description = "분실물/습득물 게시글 생성 및 조회 API")
+@Tag(name = "Item Post API", description = "분실물/습득물 게시글 생성 및 조회 API")
 @RestController
 @RequestMapping("/api/items")
 @NullMarked

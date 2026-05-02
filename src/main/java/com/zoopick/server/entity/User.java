@@ -11,7 +11,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import java.util.List;
 
 @Entity
-@Table(name = "users")
+@Table(name = "users", schema = "zoopick")
 @Getter
 @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)

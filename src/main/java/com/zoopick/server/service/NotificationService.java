@@ -18,6 +18,7 @@ import org.jspecify.annotations.NullMarked;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Function;
 
 @Service
@@ -35,13 +36,17 @@ public class NotificationService {
         userRepository.save(user);
     }
 
-    public String send(long userId, SendNotificationRequest request)
-            throws DataNotFoundException, FirebaseMessagingException {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> DataNotFoundException.from("사용자", userId));
+    public String send(long userId, SendNotificationRequest request) throws FirebaseMessagingException {
+        User user = userRepository.findByIdOrThrow(userId);
+        return this.send(user, request);
+    }
+
+    public String send(User user, SendNotificationRequest request) throws FirebaseMessagingException {
         String fcmToken = user.getFcmToken();
         if (fcmToken == null)
             throw DataNotFoundException.from("FCM 토큰", user.getSchoolEmail());
+        request.getType().validatePayload(request.getPayload());
+
         Notification notification = Notification.builder()
                 .setTitle(request.getTitle())
                 .setBody(request.getBody())
@@ -58,6 +63,8 @@ public class NotificationService {
     }
 
     public String broadcast(SendNotificationRequest request) throws FirebaseMessagingException {
+        request.getType().validatePayload(request.getPayload());
+
         Notification notification = Notification.builder()
                 .setTitle(request.getTitle())
                 .setBody(request.getBody())
@@ -71,6 +78,7 @@ public class NotificationService {
 
         List<Message> messages = users.stream()
                 .map(User::getFcmToken)
+                .filter(Objects::nonNull)
                 .map(fcmToken -> Message.builder()
                         .setNotification(notification)
                         .putAllData(request.getPayload())

@@ -65,7 +65,7 @@ public class ImageService {
             throw new InternalServerException("Failed to store the image: " + exception.getMessage(), exception);
         }
 
-        return new ImageUploadResult("/api/images/" + storedFilename, fileName);
+        return new ImageUploadResult(imagePurpose.getUrl() + storedFilename, fileName);
     }
 
     public Resource loadAsResource(ImagePurpose purpose, String filename) {

@@ -204,8 +204,8 @@ ALTER TYPE zoopick.notification_type OWNER TO postgres;
 --
 
 CREATE TYPE zoopick.user_role AS ENUM (
-    'STUDENT',
-    'ADMIN'
+    'ROLE_STUDENT',
+    'ROLE_ADMIN'
 );
 
 
@@ -628,13 +628,11 @@ CREATE TABLE zoopick.items (
     image_url character varying(500),
     created_at timestamp without time zone DEFAULT now() NOT NULL,
     updated_at timestamp without time zone,
-    description text,
     imageurl character varying(255),
     latitude double precision,
     location_name character varying(255),
     longitude double precision,
-    reportedat timestamp(6) with time zone,
-    title character varying(255) NOT NULL
+    reportedat timestamp(6) with time zone
 );
 
 
@@ -855,7 +853,7 @@ CREATE TABLE zoopick.users (
     department character varying(50) NOT NULL,
     grade character varying(20) NOT NULL,
     fcm_token character varying(512),
-    role character varying(255) DEFAULT 'STUDENT'::zoopick.user_role NOT NULL,
+    role zoopick.user_role DEFAULT 'ROLE_STUDENT'::zoopick.user_role NOT NULL,
     profile_image_url character varying(500),
     created_at timestamp without time zone DEFAULT now() NOT NULL,
     updated_at timestamp without time zone
@@ -1106,7 +1104,7 @@ COPY zoopick.item_posts (id, title, description, item_id, user_id, created_at) F
 -- Data for Name: items; Type: TABLE DATA; Schema: zoopick; Owner: postgres
 --
 
-COPY zoopick.items (id, reporter_id, type, status, category, color, embedding, reported_building_id, reported_at, theft_suspected_at, returned_at, image_url, created_at, updated_at, description, imageurl, latitude, location_name, longitude, reportedat, title) FROM stdin;
+COPY zoopick.items (id, reporter_id, type, status, category, color, embedding, reported_building_id, reported_at, theft_suspected_at, returned_at, image_url, created_at, updated_at, imageurl, latitude, location_name, longitude, reportedat) FROM stdin;
 \.
 
 
@@ -1161,9 +1159,9 @@ COPY zoopick.timetables (id, user_id, course_id, enrolled_at) FROM stdin;
 -- Data for Name: users; Type: TABLE DATA; Schema: zoopick; Owner: postgres
 --
 
-COPY zoopick.users (id, school_email, password, nickname, department, grade, fcm_token, role, profile_image_url, created_at, updated_at) FROM stdin;
-1	test@mju.ac.kr	$2a$10$dummyhashedpassword1234567890	테스트학생	컴퓨터공학과	4학년	\N	STUDENT	\N	2026-05-01 21:21:08.056682	\N
-2	admin@mju.ac.kr	$2a$10$dummyhashedpassword0987654321	관리자	시스템운영	0학년	\N	ADMIN	\N	2026-05-01 21:21:08.056682	\N
+COPY zoopick.users (id, school_email, password, nickname, department, grade, role, created_at) FROM stdin;
+1	test@mju.ac.kr	$2a$10$dummyhashedpassword1234567890	테스트학생	컴퓨터공학과	4학년	ROLE_STUDENT	2026-05-01 21:21:08.056682
+2	admin@mju.ac.kr	$2a$10$dummyhashedpassword0987654321	관리자	시스템운영	0학년	ROLE_ADMIN	2026-05-01 21:21:08.056682
 \.
 
 

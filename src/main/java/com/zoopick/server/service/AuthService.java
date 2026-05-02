@@ -7,7 +7,7 @@ import com.zoopick.server.entity.User;
 import com.zoopick.server.exception.AccessTokenException;
 import com.zoopick.server.exception.BadRequestException;
 import com.zoopick.server.exception.DataNotFoundException;
-import com.zoopick.server.repository.EmailAuthRepository;
+import com.zoopick.server.repository.EmailAuthRedisRepository;
 import com.zoopick.server.repository.UserRepository;
 import com.zoopick.server.util.EmailProvider;
 import com.zoopick.server.util.JwtUtil;
@@ -30,7 +30,7 @@ public class AuthService {
     private static final int EMAIL_CERTIFICATION_EXPIRE_DURATION = 3;
 
     private final UserRepository userRepository;
-    private final EmailAuthRepository emailAuthRepository;
+    private final EmailAuthRedisRepository emailAuthRedisRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailProvider emailProvider;
     private final JwtUtil jwtUtil;
@@ -41,12 +41,15 @@ public class AuthService {
     }
 
     public SignupResult signup(SignupRequest request) {
-        EmailAuth emailAuth = emailAuthRepository.findById(request.getSchoolEmail())
-                .orElseThrow(() -> new BadRequestException("이메일 인증을 진행해주세요.", request.getSchoolEmail() + " is not certificated."));
+        EmailAuth emailAuth = emailAuthRedisRepository.getOrThrow(
+                request.getSchoolEmail(),
+                "이메일 인증을 진행해주세요.",
+                request.getSchoolEmail() + " is not certificated."
+        );
         if (!emailAuth.isVerified())
             throw new BadRequestException("이메일 인증이 완료되지 않았습니다.", request.getSchoolEmail() + " is not verified.");
         if (emailAuth.isSignupExpired()) {
-            emailAuthRepository.delete(emailAuth);
+            emailAuthRedisRepository.delete(emailAuth.getEmail());
             throw new BadRequestException("인증 코드가 만료되었습니다.", request.getSchoolEmail() + " is signup expired.");
         }
         if (userRepository.findByNickname(request.getNickname()).isPresent())
@@ -62,7 +65,7 @@ public class AuthService {
                 .build();
 
         User savedUser = userRepository.save(user);
-        emailAuthRepository.delete(emailAuth);
+        emailAuthRedisRepository.delete(emailAuth.getEmail());
 
         String accessToken = jwtUtil.generateToken(savedUser.getSchoolEmail());
 
@@ -120,15 +123,18 @@ public class AuthService {
         String certificationNumber = generateCertificationNumber();
 
         EmailAuth emailAuth = new EmailAuth(email, certificationNumber, createNewExpireTime(), false);
-        emailAuthRepository.save(emailAuth);
+        emailAuthRedisRepository.save(emailAuth);
 
         emailProvider.senderCertificationMail(email, certificationNumber);
     }
 
     @Transactional
     public void verifyCertificationCode(CheckCertificationRequest request) {
-        EmailAuth emailAuth = emailAuthRepository.findById(request.getEmail())
-                .orElseThrow(() -> new BadRequestException("인증 요청 기록이 없습니다.", request.getEmail() + " did not request certification yet."));
+        EmailAuth emailAuth = emailAuthRedisRepository.getOrThrow(
+                request.getEmail(),
+                "인증 요청 기록이 없습니다.",
+                request.getEmail() + " did not request certification yet."
+        );
 
         if (!emailAuth.getCertificationCode().equals(request.getCertificationNumber())) {
             throw new BadRequestException(
@@ -137,11 +143,11 @@ public class AuthService {
             );
         }
         if (emailAuth.isCertificationCodeExpired()) {
-            emailAuthRepository.delete(emailAuth);
+            emailAuthRedisRepository.delete(emailAuth.getEmail());
             throw new BadRequestException("이메일 인증이 만료되었습니다.", request.getEmail() + " has expired for certification.");
         }
         emailAuth.setVerified(true);
-        emailAuthRepository.save(emailAuth);
+        emailAuthRedisRepository.save(emailAuth);
     }
 
     private String generateCertificationNumber() {

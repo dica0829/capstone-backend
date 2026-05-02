@@ -54,8 +54,8 @@ public class Item {
     @JoinColumn(name = "reported_building_id")
     private Building reportedBuilding;
 
-    @Column(name = "detail_address", length = 100)
-    private String detailAddress;
+    @Column(name = "location_name")
+    private String locationName;
 
     @Column(name = "reported_at")
     private LocalDateTime reportedAt;

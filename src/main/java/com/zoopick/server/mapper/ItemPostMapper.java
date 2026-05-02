@@ -18,7 +18,7 @@ public class ItemPostMapper {
                 .category(itemPost.getItem().getCategory())
                 .imageUrl(itemPost.getItem().getImageUrl())
                 .buildingId(itemPost.getItem().getReportedBuilding().getId())
-                .detailAddress(itemPost.getItem().getDetailAddress())
+                .detailAddress(itemPost.getItem().getLocationName())
                 .createdAt(itemPost.getCreatedAt())
                 .build();
     }

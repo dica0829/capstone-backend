@@ -1,3 +1,36 @@
+### 이메일 인증 코드 발송
+POST {{baseUrl}}/api/auth/certification
+Content-Type: application/json
+
+{
+  "email": "{{email}}"
+}
+
+### 이메일 인증 코드 검증
+POST {{baseUrl}}/api/auth/verify
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "certificationNumber": "{{certificationNumber}}"
+}
+
+### 회원가입
+POST {{baseUrl}}/api/auth/signup
+Content-Type: application/json
+
+{
+  "schoolEmail": "{{email}}",
+  "password": "{{password}}",
+  "nickname": "{{nickname}}",
+  "department": "{{department}}",
+  "grade": "{{grade}}"
+}
+
+> {%
+    client.global.set("accessToken", response.body.data.accessToken);
+%}
+
 ### 로그인
 POST {{baseUrl}}/api/auth/login
 Content-Type: application/json

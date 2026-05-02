@@ -40,7 +40,7 @@ public class ItemPostService {
                 .category(request.getCategory())
                 .color(request.getColor())
                 .reportedBuilding(building)
-                .detailAddress(request.getDetailAddress())
+                .locationName(request.getDetailAddress())
                 .imageUrl(request.getImageUrl())
                 .reportedAt(LocalDateTime.now())
                 .build();

@@ -21,9 +21,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-@Tag(name = "이미지 API", description = "이미지 업로드 및 조회 API")
+@Tag(name = "Image API", description = "이미지 업로드 및 조회 API")
 @RestController
-@RequestMapping("/api/images")
 @RequiredArgsConstructor
 @NullMarked
 public class ImageController {
@@ -34,7 +33,7 @@ public class ImageController {
             @ApiResponse(responseCode = "200", description = "업로드 성공"),
             @ApiResponse(responseCode = "400", description = "잘못된 파일 형식 또는 요청값")
     })
-    @PostMapping(value = "/upload/{purpose}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/api/images/upload/{purpose}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<CommonResponse<ImageUploadResult>> uploadImage(
             @Parameter(description = "이미지 업로드 용도", example = "item")
             @PathVariable ImagePurpose purpose,
@@ -54,7 +53,7 @@ public class ImageController {
             @ApiResponse(responseCode = "200", description = "조회 성공"),
             @ApiResponse(responseCode = "404", description = "이미지를 찾을 수 없음")
     })
-    @GetMapping("/{purpose}/{filename}")
+    @GetMapping("/images/{purpose}/{filename}")
     public ResponseEntity<Resource> getImage(
             @Parameter(description = "이미지 업로드 용도", example = "item")
             @PathVariable ImagePurpose purpose,

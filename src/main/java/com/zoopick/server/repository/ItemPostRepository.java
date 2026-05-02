@@ -18,7 +18,7 @@ public interface ItemPostRepository extends JpaRepository<ItemPost, Long>, JpaSp
             if (status == null)
                 return null;
             Join<Object, Object> itemJoin = root.join("item");
-            return criteriaBuilder.equal(itemJoin.get("category").get("status"), status);
+            return criteriaBuilder.equal(itemJoin.get("status"), status);
         };
     }
 
@@ -36,7 +36,7 @@ public interface ItemPostRepository extends JpaRepository<ItemPost, Long>, JpaSp
             if (color == null)
                 return null;
             Join<Object, Object> itemJoin = root.join("item");
-            return criteriaBuilder.equal(itemJoin.get("category").get("color"), color);
+            return criteriaBuilder.equal(itemJoin.get("color"), color);
         };
     }
 

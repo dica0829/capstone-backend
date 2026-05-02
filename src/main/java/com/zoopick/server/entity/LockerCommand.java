@@ -1,8 +1,8 @@
 package com.zoopick.server.entity;
 
+import com.zoopick.server.locker.CommandStatus;
 import com.zoopick.server.locker.LockerCommandType;
 import com.zoopick.server.locker.LockerStatus;
-import io.lettuce.core.protocol.CommandType;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -29,7 +29,7 @@ public class LockerCommand {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
-    private LockerStatus status;
+    private CommandStatus status;
 
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;

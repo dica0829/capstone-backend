@@ -5,6 +5,7 @@ import com.zoopick.server.entity.ItemCategory;
 import com.zoopick.server.entity.ItemColor;
 import com.zoopick.server.entity.ItemPost;
 import com.zoopick.server.entity.ItemStatus;
+import com.zoopick.server.exception.DataNotFoundException;
 import jakarta.persistence.criteria.Join;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -46,5 +47,9 @@ public interface ItemPostRepository extends JpaRepository<ItemPost, Long>, JpaSp
         return Specification.where(hasStatus(filter.getStatus()))
                 .and(hasCategory(filter.getCategory()))
                 .and(hasColor(filter.getColor()));
+    }
+
+    default ItemPost findByIdOrThrow(Long id) {
+        return findById(id).orElseThrow(() -> DataNotFoundException.from("게시물", id));
     }
 }

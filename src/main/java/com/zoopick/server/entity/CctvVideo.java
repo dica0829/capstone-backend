@@ -1,0 +1,37 @@
+package com.zoopick.server.entity;
+
+import jakarta.persistence.*;
+import lombok.*;
+import java.time.LocalDateTime;
+
+
+@Entity
+@Table(name = "cctv_videos")
+@Getter
+@Setter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
+@Builder
+public class CctvVideo {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "room_id", nullable = false)
+    private Room room;
+
+    @Column(name = "recorded_at", nullable = false)
+    private LocalDateTime recordedAt;
+
+    @Column(name = "duration_minutes")
+    private Integer durationMinutes;
+
+    @Column(name = "video_url", length = 500, nullable = false)
+    private String videoUrl;
+
+    @Column(name = "created_at", nullable = false, updatable = false)
+    @Builder.Default
+
+    private LocalDateTime createdAt = LocalDateTime.now();
+}

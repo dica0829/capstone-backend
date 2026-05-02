@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -79,6 +80,14 @@ public class ChatRoomService {
         if (itemType == ItemType.FOUND)
             return counterpart;
         return requester;
+    }
+
+    public FindChatRoomResult findChatRoom(String email, long itemId) {
+        User user = userRepository.findBySchoolEmailOrThrow(email);
+        Optional<Long> chatRoomId = chatRoomRepository.findByParticipantAndItemIdIs(user, itemId)
+                .map(ChatRoom::getId);
+
+        return new FindChatRoomResult(chatRoomId.isPresent(), chatRoomId.orElse(0L));
     }
 
     private void validateParticipant(ChatRoom chatRoom, User user) {

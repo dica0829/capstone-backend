@@ -7,6 +7,7 @@ import com.zoopick.server.entity.CctvVideo;
 import com.zoopick.server.entity.CctvVideoProgress;
 import com.zoopick.server.entity.VideoAnalysisStatus;
 import com.zoopick.server.exception.BadRequestException;
+import com.zoopick.server.exception.DataNotFoundException;
 import com.zoopick.server.repository.CctvDetectionRepository;
 import com.zoopick.server.repository.CctvVideoProgressRepository;
 import com.zoopick.server.repository.CctvVideoRepository;
@@ -38,7 +39,7 @@ public class CctvService {
     @Transactional
     public CctvEnqueueResponse enqueueVideo(Long videoId) {
         CctvVideo video = cctvVideoRepository.findById(videoId)
-                .orElseThrow(() -> new BadRequestException("비디오를 찾을 수 없습니다. ID: " + videoId, "VIDEO_NOT_FOUND"));
+                .orElseThrow(() -> new DataNotFoundException("비디오를 찾을 수 없습니다. ID: " + videoId, "VIDEO_NOT_FOUND"));
 
         // Progress 정보 확인 및 중복 분석 방지
         CctvVideoProgress progress = cctvVideoProgressRepository.findByCctvVideoId(videoId).orElse(null);
@@ -113,7 +114,7 @@ public class CctvService {
     @Transactional
     public void registerDetection(CctvDetectionCallback callback) {
         CctvVideo video = cctvVideoRepository.findById(callback.getVideoId())
-                .orElseThrow(() -> new BadRequestException("비디오를 찾을 수 없습니다. video_id: " + callback.getVideoId(),
+                .orElseThrow(() -> new DataNotFoundException("비디오를 찾을 수 없습니다. video_id: " + callback.getVideoId(),
                         "VIDEO_NOT_FOUND"));
 
         String itemUrl = snapshotBasePath + callback.getItemSnapshotFilename();
@@ -137,7 +138,7 @@ public class CctvService {
     @Transactional
     public void completeAnalysis(CctvCompletedCallback callback) {
         CctvVideoProgress progress = cctvVideoProgressRepository.findByCctvVideoId(callback.getVideoId())
-                .orElseThrow(() -> new BadRequestException("진행 정보를 찾을 수 없습니다. video_id: " + callback.getVideoId(),
+                .orElseThrow(() -> new DataNotFoundException("진행 정보를 찾을 수 없습니다. video_id: " + callback.getVideoId(),
                         "PROGRESS_NOT_FOUND"));
 
         progress.setStatus(VideoAnalysisStatus.COMPLETED);
@@ -155,7 +156,7 @@ public class CctvService {
     @Transactional
     public void failAnalysis(CctvFailedCallback callback) {
         CctvVideoProgress progress = cctvVideoProgressRepository.findByCctvVideoId(callback.getVideoId())
-                .orElseThrow(() -> new BadRequestException("진행 정보를 찾을 수 없습니다. video_id: " + callback.getVideoId(),
+                .orElseThrow(() -> new DataNotFoundException("진행 정보를 찾을 수 없습니다. video_id: " + callback.getVideoId(),
                         "PROGRESS_NOT_FOUND"));
 
         progress.setStatus(VideoAnalysisStatus.FAILED);

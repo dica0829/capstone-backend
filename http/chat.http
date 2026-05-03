@@ -1,0 +1,30 @@
+@itemId = 1
+@counterpartId = 3
+@roomId = 5
+
+### 1. ChatRoom 생성
+POST {{baseUrl}}/api/chat-rooms/create
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+{
+  "item_id": {{itemId}},
+  "counterpart_id": {{counterpartId}}
+}
+
+> {%
+    client.global.set("roomId", response.body.data.roomId);
+%}
+
+### 2. 메시지 전송
+POST {{baseUrl}}/api/chat-rooms/{{roomId}}/messages/send
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+{
+  "message": "안녕하세요. 이 물건 관련해서 연락드렸습니다."
+}
+
+### 3. 채팅방 메시지 조회
+GET {{baseUrl}}/api/chat-rooms/{{roomId}}/messages
+Authorization: Bearer {{accessToken}}

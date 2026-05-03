@@ -6,7 +6,7 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "item_posts")
+@Table(name = "item_posts", schema = "zoopick")
 @Getter
 @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)

@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict ZfmangQQAUgYz7NcJ9FQlhhjOoCTR8nPZiKE1voq0aYCBr0eOHrJJuWSljSkBEk
+\restrict vBIrKM2y2duz4K4pypk6j8Cz8Q2IhFzURhqsfEuD3qnxQ3Z7cxnbaC7pfprZ26i
 
 -- Dumped from database version 18.3
 -- Dumped by pg_dump version 18.3
@@ -36,11 +36,36 @@ CREATE EXTENSION IF NOT EXISTS vector WITH SCHEMA zoopick;
 
 
 --
--- Name: EXTENSION vector; Type: COMMENT; Schema: -; Owner: 
+-- Name: EXTENSION vector; Type: COMMENT; Schema: -; Owner:
 --
 
 COMMENT ON EXTENSION vector IS 'vector data type and ivfflat and hnsw access methods';
 
+
+--
+-- Name: chat_message_type; Type: TYPE; Schema: zoopick; Owner: postgres
+--
+
+CREATE TYPE zoopick.chat_message_type AS ENUM (
+    'USER',
+    'SYSTEM'
+    );
+
+
+ALTER TYPE zoopick.chat_message_type OWNER TO postgres;
+
+--
+-- Name: chat_room_status; Type: TYPE; Schema: zoopick; Owner: postgres
+--
+
+CREATE TYPE zoopick.chat_room_status AS ENUM (
+    'OPEN',
+    'RESOLVED_RETURNED',
+    'RESOLVED_ABANDONED'
+    );
+
+
+ALTER TYPE zoopick.chat_room_status OWNER TO postgres;
 
 --
 -- Name: day_of_week; Type: TYPE; Schema: zoopick; Owner: postgres
@@ -54,7 +79,7 @@ CREATE TYPE zoopick.day_of_week AS ENUM (
     'FRI',
     'SAT',
     'SUN'
-);
+    );
 
 
 ALTER TYPE zoopick.day_of_week OWNER TO postgres;
@@ -68,7 +93,7 @@ CREATE TYPE zoopick.detection_review_status AS ENUM (
     'CONFIRMED_SELF',
     'REJECTED_SELF',
     'UNCERTAIN'
-);
+    );
 
 
 ALTER TYPE zoopick.detection_review_status OWNER TO postgres;
@@ -90,7 +115,7 @@ CREATE TYPE zoopick.item_category AS ENUM (
     'WATER_BOTTLE',
     'PENCIL_CASE',
     'PLUSH_TOY'
-);
+    );
 
 
 ALTER TYPE zoopick.item_category OWNER TO postgres;
@@ -112,7 +137,7 @@ CREATE TYPE zoopick.item_color AS ENUM (
     'PURPLE',
     'ORANGE',
     'BEIGE'
-);
+    );
 
 
 ALTER TYPE zoopick.item_color OWNER TO postgres;
@@ -128,7 +153,7 @@ CREATE TYPE zoopick.item_status AS ENUM (
     'IN_TRANSIT',
     'RETRIEVING',
     'RETURNED'
-);
+    );
 
 
 ALTER TYPE zoopick.item_status OWNER TO postgres;
@@ -140,10 +165,23 @@ ALTER TYPE zoopick.item_status OWNER TO postgres;
 CREATE TYPE zoopick.item_type AS ENUM (
     'LOST',
     'FOUND'
-);
+    );
 
 
 ALTER TYPE zoopick.item_type OWNER TO postgres;
+
+--
+-- Name: locker_command_status; Type: TYPE; Schema: zoopick; Owner: postgres
+--
+
+CREATE TYPE zoopick.locker_command_status AS ENUM (
+    'PENDING',
+    'CONSUMED',
+    'COMPLETED'
+    );
+
+
+ALTER TYPE zoopick.locker_command_status OWNER TO postgres;
 
 --
 -- Name: locker_command_type; Type: TYPE; Schema: zoopick; Owner: postgres
@@ -151,8 +189,8 @@ ALTER TYPE zoopick.item_type OWNER TO postgres;
 
 CREATE TYPE zoopick.locker_command_type AS ENUM (
     'OPEN',
-    'LOCK'
-);
+    'CLOSE'
+    );
 
 
 ALTER TYPE zoopick.locker_command_type OWNER TO postgres;
@@ -164,8 +202,8 @@ ALTER TYPE zoopick.locker_command_type OWNER TO postgres;
 CREATE TYPE zoopick.locker_status AS ENUM (
     'EMPTY',
     'IN_USE',
-    'OUT_OF_ORDER'
-);
+    'MAINTENANCE'
+    );
 
 
 ALTER TYPE zoopick.locker_status OWNER TO postgres;
@@ -179,7 +217,7 @@ CREATE TYPE zoopick.match_status AS ENUM (
     'NOTIFIED',
     'CONFIRMED',
     'REJECTED'
-);
+    );
 
 
 ALTER TYPE zoopick.match_status OWNER TO postgres;
@@ -194,7 +232,7 @@ CREATE TYPE zoopick.notification_type AS ENUM (
     'ITEM_RETURNED',
     'THEFT_SUSPECTED',
     'LOCKER_READY'
-);
+    );
 
 
 ALTER TYPE zoopick.notification_type OWNER TO postgres;
@@ -204,9 +242,9 @@ ALTER TYPE zoopick.notification_type OWNER TO postgres;
 --
 
 CREATE TYPE zoopick.user_role AS ENUM (
-    'ROLE_STUDENT',
-    'ROLE_ADMIN'
-);
+    'STUDENT',
+    'ADMIN'
+    );
 
 
 ALTER TYPE zoopick.user_role OWNER TO postgres;
@@ -220,7 +258,7 @@ CREATE TYPE zoopick.video_analysis_status AS ENUM (
     'IN_PROGRESS',
     'COMPLETED',
     'FAILED'
-);
+    );
 
 
 ALTER TYPE zoopick.video_analysis_status OWNER TO postgres;
@@ -234,11 +272,11 @@ SET default_table_access_method = heap;
 --
 
 CREATE TABLE zoopick.buildings (
-    id bigint NOT NULL,
-    name character varying(100) NOT NULL,
-    code character varying(20) NOT NULL,
-    latitude double precision NOT NULL,
-    longitude double precision NOT NULL
+                                   id bigint NOT NULL,
+                                   name character varying(100) NOT NULL,
+                                   code character varying(20) NOT NULL,
+                                   latitude double precision NOT NULL,
+                                   longitude double precision NOT NULL
 );
 
 
@@ -270,9 +308,9 @@ ALTER SEQUENCE zoopick.buildings_id_seq OWNED BY zoopick.buildings.id;
 --
 
 CREATE TABLE zoopick.cctv_detection_matches (
-    id bigint NOT NULL,
-    detection_id bigint NOT NULL,
-    item_id bigint NOT NULL
+                                                id bigint NOT NULL,
+                                                detection_id bigint NOT NULL,
+                                                item_id bigint NOT NULL
 );
 
 
@@ -304,16 +342,16 @@ ALTER SEQUENCE zoopick.cctv_detection_matches_id_seq OWNED BY zoopick.cctv_detec
 --
 
 CREATE TABLE zoopick.cctv_detections (
-    id bigint NOT NULL,
-    video_id bigint NOT NULL,
-    detected_at timestamp without time zone NOT NULL,
-    detected_category zoopick.item_category,
-    detected_color zoopick.item_color,
-    item_snapshot_url character varying(500) NOT NULL,
-    moment_snapshot_url character varying(500) NOT NULL,
-    review_status zoopick.detection_review_status DEFAULT 'PENDING'::zoopick.detection_review_status NOT NULL,
-    reviewed_at timestamp without time zone,
-    created_at timestamp without time zone DEFAULT now() NOT NULL
+                                         id bigint NOT NULL,
+                                         video_id bigint NOT NULL,
+                                         detected_at timestamp without time zone NOT NULL,
+                                         detected_category zoopick.item_category,
+                                         detected_color zoopick.item_color,
+                                         item_snapshot_url character varying(500) NOT NULL,
+                                         moment_snapshot_url character varying(500) NOT NULL,
+                                         review_status zoopick.detection_review_status DEFAULT 'PENDING'::zoopick.detection_review_status NOT NULL,
+                                         reviewed_at timestamp without time zone,
+                                         created_at timestamp without time zone DEFAULT now() NOT NULL
 );
 
 
@@ -345,16 +383,16 @@ ALTER SEQUENCE zoopick.cctv_detections_id_seq OWNED BY zoopick.cctv_detections.i
 --
 
 CREATE TABLE zoopick.cctv_video_progress (
-    id bigint NOT NULL,
-    video_id bigint NOT NULL,
-    status zoopick.video_analysis_status DEFAULT 'PENDING'::zoopick.video_analysis_status NOT NULL,
-    analyzed_until timestamp without time zone,
-    total_duration_seconds integer NOT NULL,
-    analyzed_seconds integer DEFAULT 0 NOT NULL,
-    progress_percent real,
-    estimated_completion_at timestamp without time zone,
-    started_at timestamp without time zone,
-    last_updated_at timestamp without time zone
+                                             id bigint NOT NULL,
+                                             video_id bigint NOT NULL,
+                                             status zoopick.video_analysis_status DEFAULT 'PENDING'::zoopick.video_analysis_status NOT NULL,
+                                             analyzed_until timestamp without time zone,
+                                             total_duration_seconds integer NOT NULL,
+                                             analyzed_seconds integer DEFAULT 0 NOT NULL,
+                                             progress_percent real,
+                                             estimated_completion_at timestamp without time zone,
+                                             started_at timestamp without time zone,
+                                             last_updated_at timestamp without time zone
 );
 
 
@@ -386,12 +424,12 @@ ALTER SEQUENCE zoopick.cctv_video_progress_id_seq OWNED BY zoopick.cctv_video_pr
 --
 
 CREATE TABLE zoopick.cctv_videos (
-    id bigint NOT NULL,
-    room_id bigint NOT NULL,
-    recorded_at timestamp without time zone NOT NULL,
-    duration_minutes integer NOT NULL,
-    video_url character varying(500) NOT NULL,
-    created_at timestamp without time zone DEFAULT now() NOT NULL
+                                     id bigint NOT NULL,
+                                     room_id bigint NOT NULL,
+                                     recorded_at timestamp without time zone NOT NULL,
+                                     duration_minutes integer NOT NULL,
+                                     video_url character varying(500) NOT NULL,
+                                     created_at timestamp without time zone DEFAULT now() NOT NULL
 );
 
 
@@ -423,12 +461,14 @@ ALTER SEQUENCE zoopick.cctv_videos_id_seq OWNED BY zoopick.cctv_videos.id;
 --
 
 CREATE TABLE zoopick.chat_messages (
-    id bigint NOT NULL,
-    room_id bigint NOT NULL,
-    sender_id bigint NOT NULL,
-    content text NOT NULL,
-    read_at timestamp without time zone,
-    sent_at timestamp without time zone DEFAULT now() NOT NULL
+                                       id bigint NOT NULL,
+                                       room_id bigint NOT NULL,
+                                       type zoopick.chat_message_type DEFAULT 'USER'::zoopick.chat_message_type NOT NULL,
+                                       sender_id bigint,
+                                       content text NOT NULL,
+                                       read_at timestamp without time zone,
+                                       sent_at timestamp without time zone DEFAULT now() NOT NULL,
+                                       CONSTRAINT chk_message_sender CHECK ((((type = 'USER'::zoopick.chat_message_type) AND (sender_id IS NOT NULL)) OR ((type = 'SYSTEM'::zoopick.chat_message_type) AND (sender_id IS NULL))))
 );
 
 
@@ -460,11 +500,15 @@ ALTER SEQUENCE zoopick.chat_messages_id_seq OWNED BY zoopick.chat_messages.id;
 --
 
 CREATE TABLE zoopick.chat_rooms (
-    id bigint NOT NULL,
-    item_id bigint,
-    owner_id bigint NOT NULL,
-    finder_id bigint NOT NULL,
-    created_at timestamp without time zone DEFAULT now() NOT NULL
+                                    id bigint NOT NULL,
+                                    item_id bigint,
+                                    owner_id bigint NOT NULL,
+                                    finder_id bigint NOT NULL,
+                                    status zoopick.chat_room_status DEFAULT 'OPEN'::zoopick.chat_room_status NOT NULL,
+                                    resolved_by bigint,
+                                    resolved_at timestamp without time zone,
+                                    created_at timestamp without time zone DEFAULT now() NOT NULL,
+                                    CONSTRAINT chk_chatrooms_resolved CHECK ((((status = 'OPEN'::zoopick.chat_room_status) AND (resolved_by IS NULL) AND (resolved_at IS NULL)) OR ((status = ANY (ARRAY['RESOLVED_RETURNED'::zoopick.chat_room_status, 'RESOLVED_ABANDONED'::zoopick.chat_room_status])) AND (resolved_at IS NOT NULL))))
 );
 
 
@@ -496,14 +540,14 @@ ALTER SEQUENCE zoopick.chat_rooms_id_seq OWNED BY zoopick.chat_rooms.id;
 --
 
 CREATE TABLE zoopick.courses (
-    id bigint NOT NULL,
-    course_name character varying(100) NOT NULL,
-    room_id bigint NOT NULL,
-    year integer NOT NULL,
-    semester integer NOT NULL,
-    day_of_week zoopick.day_of_week NOT NULL,
-    start_time time without time zone NOT NULL,
-    end_time time without time zone NOT NULL
+                                 id bigint NOT NULL,
+                                 course_name character varying(100) NOT NULL,
+                                 room_id bigint NOT NULL,
+                                 year integer NOT NULL,
+                                 semester integer NOT NULL,
+                                 day_of_week zoopick.day_of_week NOT NULL,
+                                 start_time time without time zone NOT NULL,
+                                 end_time time without time zone NOT NULL
 );
 
 
@@ -535,17 +579,17 @@ ALTER SEQUENCE zoopick.courses_id_seq OWNED BY zoopick.courses.id;
 --
 
 CREATE TABLE zoopick.item_matches (
-    id bigint NOT NULL,
-    lost_item_id bigint NOT NULL,
-    found_item_id bigint NOT NULL,
-    score_category real,
-    score_visual real,
-    score_spatial real,
-    score_temporal real,
-    score_total real NOT NULL,
-    status zoopick.match_status DEFAULT 'CANDIDATE'::zoopick.match_status NOT NULL,
-    created_at timestamp without time zone DEFAULT now() NOT NULL,
-    updated_at timestamp without time zone
+                                      id bigint NOT NULL,
+                                      lost_item_id bigint NOT NULL,
+                                      found_item_id bigint NOT NULL,
+                                      score_category real,
+                                      score_visual real,
+                                      score_spatial real,
+                                      score_temporal real,
+                                      score_total real NOT NULL,
+                                      status zoopick.match_status DEFAULT 'CANDIDATE'::zoopick.match_status NOT NULL,
+                                      created_at timestamp without time zone DEFAULT now() NOT NULL,
+                                      updated_at timestamp without time zone
 );
 
 
@@ -577,12 +621,12 @@ ALTER SEQUENCE zoopick.item_matches_id_seq OWNED BY zoopick.item_matches.id;
 --
 
 CREATE TABLE zoopick.item_posts (
-    id bigint NOT NULL,
-    title character varying(512),
-    description character varying(512),
-    item_id bigint,
-    user_id bigint,
-    created_at timestamp without time zone DEFAULT now() NOT NULL
+                                    id bigint NOT NULL,
+                                    title character varying(512),
+                                    description character varying(512),
+                                    item_id bigint,
+                                    user_id bigint,
+                                    created_at timestamp without time zone DEFAULT now() NOT NULL
 );
 
 
@@ -614,25 +658,21 @@ ALTER SEQUENCE zoopick.item_posts_id_seq OWNED BY zoopick.item_posts.id;
 --
 
 CREATE TABLE zoopick.items (
-    id bigint NOT NULL,
-    reporter_id bigint NOT NULL,
-    type character varying(20) NOT NULL,
-    status character varying(255) DEFAULT 'REPORTED'::zoopick.item_status NOT NULL,
-    category character varying(255),
-    color character varying(255),
-    embedding zoopick.vector(512),
-    reported_building_id bigint,
-    reported_at timestamp without time zone,
-    theft_suspected_at timestamp without time zone,
-    returned_at timestamp without time zone,
-    image_url character varying(500),
-    created_at timestamp without time zone DEFAULT now() NOT NULL,
-    updated_at timestamp without time zone,
-    imageurl character varying(255),
-    latitude double precision,
-    location_name character varying(255),
-    longitude double precision,
-    reportedat timestamp(6) with time zone
+                               id bigint NOT NULL,
+                               reporter_id bigint NOT NULL,
+                               type zoopick.item_type NOT NULL,
+                               status zoopick.item_status DEFAULT 'REPORTED'::zoopick.item_status NOT NULL,
+                               category zoopick.item_category,
+                               color zoopick.item_color,
+                               embedding zoopick.vector(512),
+                               reported_building_id bigint,
+                               location_name character varying(255),
+                               reported_at timestamp without time zone,
+                               theft_suspected_at timestamp without time zone,
+                               returned_at timestamp without time zone,
+                               image_url character varying(500),
+                               created_at timestamp without time zone DEFAULT now() NOT NULL,
+                               updated_at timestamp without time zone
 );
 
 
@@ -664,13 +704,14 @@ ALTER SEQUENCE zoopick.items_id_seq OWNED BY zoopick.items.id;
 --
 
 CREATE TABLE zoopick.locker_commands (
-    id bigint NOT NULL,
-    locker_id bigint NOT NULL,
-    command zoopick.locker_command_type NOT NULL,
-    issued_by bigint,
-    issued_at timestamp without time zone DEFAULT now() NOT NULL,
-    consumed_at timestamp without time zone,
-    ack_at timestamp without time zone
+                                         id bigint NOT NULL,
+                                         locker_id bigint NOT NULL,
+                                         command zoopick.locker_command_type NOT NULL,
+                                         status zoopick.locker_command_status DEFAULT 'PENDING'::zoopick.locker_command_status NOT NULL,
+                                         issued_by bigint,
+                                         created_at timestamp without time zone DEFAULT now() NOT NULL,
+                                         consumed_at timestamp without time zone,
+                                         completed_at timestamp without time zone
 );
 
 
@@ -702,50 +743,25 @@ ALTER SEQUENCE zoopick.locker_commands_id_seq OWNED BY zoopick.locker_commands.i
 --
 
 CREATE TABLE zoopick.lockers (
-    id bigint NOT NULL,
-    name character varying(50),
-    building_id bigint,
-    status zoopick.locker_status DEFAULT 'EMPTY'::zoopick.locker_status NOT NULL,
-    current_item_id bigint,
-    device_token character varying(255),
-    last_polled_at timestamp without time zone
+                                 id bigint NOT NULL,
+                                 status zoopick.locker_status DEFAULT 'EMPTY'::zoopick.locker_status NOT NULL,
+                                 current_item_id bigint
 );
 
 
 ALTER TABLE zoopick.lockers OWNER TO postgres;
 
 --
--- Name: lockers_id_seq; Type: SEQUENCE; Schema: zoopick; Owner: postgres
---
-
-CREATE SEQUENCE zoopick.lockers_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER SEQUENCE zoopick.lockers_id_seq OWNER TO postgres;
-
---
--- Name: lockers_id_seq; Type: SEQUENCE OWNED BY; Schema: zoopick; Owner: postgres
---
-
-ALTER SEQUENCE zoopick.lockers_id_seq OWNED BY zoopick.lockers.id;
-
-
---
 -- Name: notifications; Type: TABLE; Schema: zoopick; Owner: postgres
 --
 
 CREATE TABLE zoopick.notifications (
-    id bigint NOT NULL,
-    user_id bigint NOT NULL,
-    type character varying(255) NOT NULL,
-    payload jsonb,
-    read_at timestamp without time zone,
-    created_at timestamp without time zone DEFAULT now() NOT NULL
+                                       id bigint NOT NULL,
+                                       user_id bigint NOT NULL,
+                                       type zoopick.notification_type NOT NULL,
+                                       payload jsonb,
+                                       read_at timestamp without time zone,
+                                       created_at timestamp without time zone DEFAULT now() NOT NULL
 );
 
 
@@ -777,9 +793,9 @@ ALTER SEQUENCE zoopick.notifications_id_seq OWNED BY zoopick.notifications.id;
 --
 
 CREATE TABLE zoopick.rooms (
-    id bigint NOT NULL,
-    building_id bigint NOT NULL,
-    name character varying(50) NOT NULL
+                               id bigint NOT NULL,
+                               building_id bigint NOT NULL,
+                               name character varying(50) NOT NULL
 );
 
 
@@ -811,10 +827,10 @@ ALTER SEQUENCE zoopick.rooms_id_seq OWNED BY zoopick.rooms.id;
 --
 
 CREATE TABLE zoopick.timetables (
-    id bigint NOT NULL,
-    user_id bigint NOT NULL,
-    course_id bigint NOT NULL,
-    enrolled_at timestamp without time zone DEFAULT now() NOT NULL
+                                    id bigint NOT NULL,
+                                    user_id bigint NOT NULL,
+                                    course_id bigint NOT NULL,
+                                    enrolled_at timestamp without time zone DEFAULT now() NOT NULL
 );
 
 
@@ -846,17 +862,17 @@ ALTER SEQUENCE zoopick.timetables_id_seq OWNED BY zoopick.timetables.id;
 --
 
 CREATE TABLE zoopick.users (
-    id bigint NOT NULL,
-    school_email character varying(255) NOT NULL,
-    password character varying(255) NOT NULL,
-    nickname character varying(50) NOT NULL,
-    department character varying(50) NOT NULL,
-    grade character varying(20) NOT NULL,
-    fcm_token character varying(512),
-    role zoopick.user_role DEFAULT 'ROLE_STUDENT'::zoopick.user_role NOT NULL,
-    profile_image_url character varying(500),
-    created_at timestamp without time zone DEFAULT now() NOT NULL,
-    updated_at timestamp without time zone
+                               id bigint NOT NULL,
+                               school_email character varying(255) NOT NULL,
+                               password character varying(255) NOT NULL,
+                               nickname character varying(50) NOT NULL,
+                               department character varying(50) NOT NULL,
+                               grade character varying(20) NOT NULL,
+                               fcm_token character varying(512),
+                               role zoopick.user_role DEFAULT 'STUDENT'::zoopick.user_role NOT NULL,
+                               profile_image_url character varying(500),
+                               created_at timestamp without time zone DEFAULT now() NOT NULL,
+                               updated_at timestamp without time zone
 );
 
 
@@ -968,13 +984,6 @@ ALTER TABLE ONLY zoopick.locker_commands ALTER COLUMN id SET DEFAULT nextval('zo
 
 
 --
--- Name: lockers id; Type: DEFAULT; Schema: zoopick; Owner: postgres
---
-
-ALTER TABLE ONLY zoopick.lockers ALTER COLUMN id SET DEFAULT nextval('zoopick.lockers_id_seq'::regclass);
-
-
---
 -- Name: notifications id; Type: DEFAULT; Schema: zoopick; Owner: postgres
 --
 
@@ -1052,7 +1061,7 @@ COPY zoopick.cctv_videos (id, room_id, recorded_at, duration_minutes, video_url,
 -- Data for Name: chat_messages; Type: TABLE DATA; Schema: zoopick; Owner: postgres
 --
 
-COPY zoopick.chat_messages (id, room_id, sender_id, content, read_at, sent_at) FROM stdin;
+COPY zoopick.chat_messages (id, room_id, type, sender_id, content, read_at, sent_at) FROM stdin;
 \.
 
 
@@ -1060,7 +1069,7 @@ COPY zoopick.chat_messages (id, room_id, sender_id, content, read_at, sent_at) F
 -- Data for Name: chat_rooms; Type: TABLE DATA; Schema: zoopick; Owner: postgres
 --
 
-COPY zoopick.chat_rooms (id, item_id, owner_id, finder_id, created_at) FROM stdin;
+COPY zoopick.chat_rooms (id, item_id, owner_id, finder_id, status, resolved_by, resolved_at, created_at) FROM stdin;
 \.
 
 
@@ -1104,7 +1113,7 @@ COPY zoopick.item_posts (id, title, description, item_id, user_id, created_at) F
 -- Data for Name: items; Type: TABLE DATA; Schema: zoopick; Owner: postgres
 --
 
-COPY zoopick.items (id, reporter_id, type, status, category, color, embedding, reported_building_id, reported_at, theft_suspected_at, returned_at, image_url, created_at, updated_at, imageurl, latitude, location_name, longitude, reportedat) FROM stdin;
+COPY zoopick.items (id, reporter_id, type, status, category, color, embedding, reported_building_id, location_name, reported_at, theft_suspected_at, returned_at, image_url, created_at, updated_at) FROM stdin;
 \.
 
 
@@ -1112,7 +1121,7 @@ COPY zoopick.items (id, reporter_id, type, status, category, color, embedding, r
 -- Data for Name: locker_commands; Type: TABLE DATA; Schema: zoopick; Owner: postgres
 --
 
-COPY zoopick.locker_commands (id, locker_id, command, issued_by, issued_at, consumed_at, ack_at) FROM stdin;
+COPY zoopick.locker_commands (id, locker_id, command, status, issued_by, created_at, consumed_at, completed_at) FROM stdin;
 \.
 
 
@@ -1120,8 +1129,8 @@ COPY zoopick.locker_commands (id, locker_id, command, issued_by, issued_at, cons
 -- Data for Name: lockers; Type: TABLE DATA; Schema: zoopick; Owner: postgres
 --
 
-COPY zoopick.lockers (id, name, building_id, status, current_item_id, device_token, last_polled_at) FROM stdin;
-1	1번 사물함	1	EMPTY	\N	ARDUINO_R4_001	\N
+COPY zoopick.lockers (id, status, current_item_id) FROM stdin;
+1	EMPTY	\N
 \.
 
 
@@ -1159,9 +1168,9 @@ COPY zoopick.timetables (id, user_id, course_id, enrolled_at) FROM stdin;
 -- Data for Name: users; Type: TABLE DATA; Schema: zoopick; Owner: postgres
 --
 
-COPY zoopick.users (id, school_email, password, nickname, department, grade, role, created_at) FROM stdin;
-1	test@mju.ac.kr	$2a$10$dummyhashedpassword1234567890	테스트학생	컴퓨터공학과	4학년	ROLE_STUDENT	2026-05-01 21:21:08.056682
-2	admin@mju.ac.kr	$2a$10$dummyhashedpassword0987654321	관리자	시스템운영	0학년	ROLE_ADMIN	2026-05-01 21:21:08.056682
+COPY zoopick.users (id, school_email, password, nickname, department, grade, fcm_token, role, profile_image_url, created_at, updated_at) FROM stdin;
+1	test@mju.ac.kr	$2a$10$dummyhashedpassword1234567890	테스트학생	컴퓨터공학과	4학년	\N	STUDENT	\N	2026-05-03 14:33:36.143031	\N
+2	admin@mju.ac.kr	$2a$10$dummyhashedpassword0987654321	관리자	시스템운영	0학년	\N	ADMIN	\N	2026-05-03 14:33:36.143031	\N
 \.
 
 
@@ -1247,13 +1256,6 @@ SELECT pg_catalog.setval('zoopick.items_id_seq', 1, false);
 --
 
 SELECT pg_catalog.setval('zoopick.locker_commands_id_seq', 1, false);
-
-
---
--- Name: lockers_id_seq; Type: SEQUENCE SET; Schema: zoopick; Owner: postgres
---
-
-SELECT pg_catalog.setval('zoopick.lockers_id_seq', 1, true);
 
 
 --
@@ -1405,14 +1407,6 @@ ALTER TABLE ONLY zoopick.lockers
 
 
 --
--- Name: lockers lockers_device_token_key; Type: CONSTRAINT; Schema: zoopick; Owner: postgres
---
-
-ALTER TABLE ONLY zoopick.lockers
-    ADD CONSTRAINT lockers_device_token_key UNIQUE (device_token);
-
-
---
 -- Name: lockers lockers_pkey; Type: CONSTRAINT; Schema: zoopick; Owner: postgres
 --
 
@@ -1442,14 +1436,6 @@ ALTER TABLE ONLY zoopick.rooms
 
 ALTER TABLE ONLY zoopick.timetables
     ADD CONSTRAINT timetables_pkey PRIMARY KEY (id);
-
-
---
--- Name: chat_rooms uq_chatrooms_triple; Type: CONSTRAINT; Schema: zoopick; Owner: postgres
---
-
-ALTER TABLE ONLY zoopick.chat_rooms
-    ADD CONSTRAINT uq_chatrooms_triple UNIQUE (item_id, owner_id, finder_id);
 
 
 --
@@ -1509,10 +1495,17 @@ ALTER TABLE ONLY zoopick.users
 
 
 --
+-- Name: idx_chatrooms_open; Type: INDEX; Schema: zoopick; Owner: postgres
+--
+
+CREATE INDEX idx_chatrooms_open ON zoopick.chat_rooms USING btree (status) WHERE (status = 'OPEN'::zoopick.chat_room_status);
+
+
+--
 -- Name: idx_commands_pending; Type: INDEX; Schema: zoopick; Owner: postgres
 --
 
-CREATE INDEX idx_commands_pending ON zoopick.locker_commands USING btree (locker_id, consumed_at) WHERE (consumed_at IS NULL);
+CREATE INDEX idx_commands_pending ON zoopick.locker_commands USING btree (locker_id, created_at) WHERE (status = 'PENDING'::zoopick.locker_command_status);
 
 
 --
@@ -1642,6 +1635,20 @@ CREATE INDEX idx_videos_room_time ON zoopick.cctv_videos USING btree (room_id, r
 
 
 --
+-- Name: uq_chatrooms_with_item; Type: INDEX; Schema: zoopick; Owner: postgres
+--
+
+CREATE UNIQUE INDEX uq_chatrooms_with_item ON zoopick.chat_rooms USING btree (item_id, owner_id, finder_id) WHERE (item_id IS NOT NULL);
+
+
+--
+-- Name: uq_chatrooms_without_item; Type: INDEX; Schema: zoopick; Owner: postgres
+--
+
+CREATE UNIQUE INDEX uq_chatrooms_without_item ON zoopick.chat_rooms USING btree (owner_id, finder_id) WHERE (item_id IS NULL);
+
+
+--
 -- Name: chat_rooms fk_chatrooms_finder; Type: FK CONSTRAINT; Schema: zoopick; Owner: postgres
 --
 
@@ -1663,6 +1670,14 @@ ALTER TABLE ONLY zoopick.chat_rooms
 
 ALTER TABLE ONLY zoopick.chat_rooms
     ADD CONSTRAINT fk_chatrooms_owner FOREIGN KEY (owner_id) REFERENCES zoopick.users(id) ON DELETE CASCADE;
+
+
+--
+-- Name: chat_rooms fk_chatrooms_resolver; Type: FK CONSTRAINT; Schema: zoopick; Owner: postgres
+--
+
+ALTER TABLE ONLY zoopick.chat_rooms
+    ADD CONSTRAINT fk_chatrooms_resolver FOREIGN KEY (resolved_by) REFERENCES zoopick.users(id) ON DELETE SET NULL;
 
 
 --
@@ -1743,14 +1758,6 @@ ALTER TABLE ONLY zoopick.items
 
 ALTER TABLE ONLY zoopick.items
     ADD CONSTRAINT fk_items_reporter FOREIGN KEY (reporter_id) REFERENCES zoopick.users(id) ON DELETE CASCADE;
-
-
---
--- Name: lockers fk_lockers_building; Type: FK CONSTRAINT; Schema: zoopick; Owner: postgres
---
-
-ALTER TABLE ONLY zoopick.lockers
-    ADD CONSTRAINT fk_lockers_building FOREIGN KEY (building_id) REFERENCES zoopick.buildings(id) ON DELETE SET NULL;
 
 
 --
@@ -1845,5 +1852,5 @@ ALTER TABLE ONLY zoopick.cctv_videos
 -- PostgreSQL database dump complete
 --
 
-\unrestrict ZfmangQQAUgYz7NcJ9FQlhhjOoCTR8nPZiKE1voq0aYCBr0eOHrJJuWSljSkBEk
+\unrestrict vBIrKM2y2duz4K4pypk6j8Cz8Q2IhFzURhqsfEuD3qnxQ3Z7cxnbaC7pfprZ26i
 

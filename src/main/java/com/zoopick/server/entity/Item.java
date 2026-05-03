@@ -9,7 +9,7 @@ import org.hibernate.type.SqlTypes;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "items")
+@Table(name = "items", schema = "zoopick")
 @Getter
 @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)

@@ -53,7 +53,6 @@ public class CctvService {
             // FAILED인 경우 재시도를 위해 상태 초기화
             progress.setStatus(VideoAnalysisStatus.PENDING);
             progress.setAnalyzedSeconds(0);
-            progress.setProgressPercent(0.0);
         } else {
             progress = CctvVideoProgress.builder()
                     .cctvVideo(video)
@@ -147,7 +146,6 @@ public class CctvService {
 
         progress.setStatus(VideoAnalysisStatus.COMPLETED);
         progress.setAnalyzedSeconds(callback.getTotalSeconds());
-        progress.setProgressPercent(100.0);
         progress.setStartedAt(callback.getStartedAt());
 
         cctvVideoProgressRepository.save(progress);

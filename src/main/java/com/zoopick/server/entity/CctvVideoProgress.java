@@ -28,8 +28,7 @@ public class CctvVideoProgress {
     @Builder.Default
     private VideoAnalysisStatus status = VideoAnalysisStatus.PENDING;
 
-    @Column(name = "analyzed_until")
-    private LocalDateTime analyzedUntil;
+
 
     @Column(name = "total_duration_seconds", nullable = false)
     private Integer totalDurationSeconds;
@@ -38,8 +37,7 @@ public class CctvVideoProgress {
     @Builder.Default
     private Integer analyzedSeconds = 0;
 
-    @Column(name = "progress_percent")
-    private Double progressPercent;
+
 
     @Column(name = "estimated_completion_at")
     private LocalDateTime estimatedCompletionAt;

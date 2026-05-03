@@ -428,7 +428,7 @@ CREATE TABLE zoopick.cctv_videos (
                                      id bigint NOT NULL,
                                      room_id bigint NOT NULL,
                                      recorded_at timestamp without time zone NOT NULL,
-                                     duration_minutes integer NOT NULL,
+                                     duration_seconds integer NOT NULL,
                                      video_url character varying(500) NOT NULL,
                                      created_at timestamp without time zone DEFAULT now() NOT NULL
 );

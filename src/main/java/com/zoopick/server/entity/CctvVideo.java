@@ -24,8 +24,8 @@ public class CctvVideo {
     @Column(name = "recorded_at", nullable = false)
     private LocalDateTime recordedAt;
 
-    @Column(name = "duration_minutes")
-    private Integer durationMinutes;
+    @Column(name = "duration_seconds")
+    private Integer durationSeconds;
 
     @Column(name = "video_url", length = 500, nullable = false)
     private String videoUrl;

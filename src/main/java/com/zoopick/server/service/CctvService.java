@@ -58,7 +58,7 @@ public class CctvService {
             progress = CctvVideoProgress.builder()
                     .cctvVideo(video)
                     .status(VideoAnalysisStatus.PENDING)
-                    .totalDurationSeconds(video.getDurationMinutes() * 60)
+                    .totalDurationSeconds(video.getDurationSeconds())
                     .build();
         }
         cctvVideoProgressRepository.save(progress);

@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict G3VxqcYuza6bUowWbCojNXVxhTotedxlrsV0yIBXYtkT2ChqVlpLvhKgc7x34WV
+\restrict vBIrKM2y2duz4K4pypk6j8Cz8Q2IhFzURhqsfEuD3qnxQ3Z7cxnbaC7pfprZ26i
 
 -- Dumped from database version 18.3
 -- Dumped by pg_dump version 18.3
@@ -666,6 +666,7 @@ CREATE TABLE zoopick.items (
                                color zoopick.item_color,
                                embedding zoopick.vector(512),
                                reported_building_id bigint,
+                               location_name character varying(255),
                                reported_at timestamp without time zone,
                                theft_suspected_at timestamp without time zone,
                                returned_at timestamp without time zone,
@@ -1112,7 +1113,7 @@ COPY zoopick.item_posts (id, title, description, item_id, user_id, created_at) F
 -- Data for Name: items; Type: TABLE DATA; Schema: zoopick; Owner: postgres
 --
 
-COPY zoopick.items (id, reporter_id, type, status, category, color, embedding, reported_building_id, reported_at, theft_suspected_at, returned_at, image_url, created_at, updated_at) FROM stdin;
+COPY zoopick.items (id, reporter_id, type, status, category, color, embedding, reported_building_id, location_name, reported_at, theft_suspected_at, returned_at, image_url, created_at, updated_at) FROM stdin;
 \.
 
 
@@ -1168,8 +1169,8 @@ COPY zoopick.timetables (id, user_id, course_id, enrolled_at) FROM stdin;
 --
 
 COPY zoopick.users (id, school_email, password, nickname, department, grade, fcm_token, role, profile_image_url, created_at, updated_at) FROM stdin;
-1	test@mju.ac.kr	$2a$10$dummyhashedpassword1234567890	테스트학생	컴퓨터공학과	4학년	\N	STUDENT	\N	2026-05-03 13:45:13.663174	\N
-2	admin@mju.ac.kr	$2a$10$dummyhashedpassword0987654321	관리자	시스템운영	0학년	\N	ADMIN	\N	2026-05-03 13:45:13.663174	\N
+1	test@mju.ac.kr	$2a$10$dummyhashedpassword1234567890	테스트학생	컴퓨터공학과	4학년	\N	STUDENT	\N	2026-05-03 14:33:36.143031	\N
+2	admin@mju.ac.kr	$2a$10$dummyhashedpassword0987654321	관리자	시스템운영	0학년	\N	ADMIN	\N	2026-05-03 14:33:36.143031	\N
 \.
 
 
@@ -1851,5 +1852,5 @@ ALTER TABLE ONLY zoopick.cctv_videos
 -- PostgreSQL database dump complete
 --
 
-\unrestrict G3VxqcYuza6bUowWbCojNXVxhTotedxlrsV0yIBXYtkT2ChqVlpLvhKgc7x34WV
+\unrestrict vBIrKM2y2duz4K4pypk6j8Cz8Q2IhFzURhqsfEuD3qnxQ3Z7cxnbaC7pfprZ26i
 

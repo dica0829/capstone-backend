@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict vBIrKM2y2duz4K4pypk6j8Cz8Q2IhFzURhqsfEuD3qnxQ3Z7cxnbaC7pfprZ26i
+\restrict XlB6kP570zX4lMuSdrTtHO8AIXQ9fEQerbTHCGQFod5c8DrjaY4DBO45Kwd4i57
 
 -- Dumped from database version 18.3
 -- Dumped by pg_dump version 18.3
@@ -347,6 +347,7 @@ CREATE TABLE zoopick.cctv_detections (
                                          detected_at timestamp without time zone NOT NULL,
                                          detected_category zoopick.item_category,
                                          detected_color zoopick.item_color,
+                                         embedding zoopick.vector(512),
                                          item_snapshot_url character varying(500) NOT NULL,
                                          moment_snapshot_url character varying(500) NOT NULL,
                                          review_status zoopick.detection_review_status DEFAULT 'PENDING'::zoopick.detection_review_status NOT NULL,
@@ -386,10 +387,8 @@ CREATE TABLE zoopick.cctv_video_progress (
                                              id bigint NOT NULL,
                                              video_id bigint NOT NULL,
                                              status zoopick.video_analysis_status DEFAULT 'PENDING'::zoopick.video_analysis_status NOT NULL,
-                                             analyzed_until timestamp without time zone,
                                              total_duration_seconds integer NOT NULL,
                                              analyzed_seconds integer DEFAULT 0 NOT NULL,
-                                             progress_percent real,
                                              estimated_completion_at timestamp without time zone,
                                              started_at timestamp without time zone,
                                              last_updated_at timestamp without time zone
@@ -427,7 +426,7 @@ CREATE TABLE zoopick.cctv_videos (
                                      id bigint NOT NULL,
                                      room_id bigint NOT NULL,
                                      recorded_at timestamp without time zone NOT NULL,
-                                     duration_minutes integer NOT NULL,
+                                     duration_seconds integer NOT NULL,
                                      video_url character varying(500) NOT NULL,
                                      created_at timestamp without time zone DEFAULT now() NOT NULL
 );
@@ -1037,7 +1036,7 @@ COPY zoopick.cctv_detection_matches (id, detection_id, item_id) FROM stdin;
 -- Data for Name: cctv_detections; Type: TABLE DATA; Schema: zoopick; Owner: postgres
 --
 
-COPY zoopick.cctv_detections (id, video_id, detected_at, detected_category, detected_color, item_snapshot_url, moment_snapshot_url, review_status, reviewed_at, created_at) FROM stdin;
+COPY zoopick.cctv_detections (id, video_id, detected_at, detected_category, detected_color, embedding, item_snapshot_url, moment_snapshot_url, review_status, reviewed_at, created_at) FROM stdin;
 \.
 
 
@@ -1045,7 +1044,7 @@ COPY zoopick.cctv_detections (id, video_id, detected_at, detected_category, dete
 -- Data for Name: cctv_video_progress; Type: TABLE DATA; Schema: zoopick; Owner: postgres
 --
 
-COPY zoopick.cctv_video_progress (id, video_id, status, analyzed_until, total_duration_seconds, analyzed_seconds, progress_percent, estimated_completion_at, started_at, last_updated_at) FROM stdin;
+COPY zoopick.cctv_video_progress (id, video_id, status, total_duration_seconds, analyzed_seconds, estimated_completion_at, started_at, last_updated_at) FROM stdin;
 \.
 
 
@@ -1053,7 +1052,7 @@ COPY zoopick.cctv_video_progress (id, video_id, status, analyzed_until, total_du
 -- Data for Name: cctv_videos; Type: TABLE DATA; Schema: zoopick; Owner: postgres
 --
 
-COPY zoopick.cctv_videos (id, room_id, recorded_at, duration_minutes, video_url, created_at) FROM stdin;
+COPY zoopick.cctv_videos (id, room_id, recorded_at, duration_seconds, video_url, created_at) FROM stdin;
 \.
 
 
@@ -1169,8 +1168,8 @@ COPY zoopick.timetables (id, user_id, course_id, enrolled_at) FROM stdin;
 --
 
 COPY zoopick.users (id, school_email, password, nickname, department, grade, fcm_token, role, profile_image_url, created_at, updated_at) FROM stdin;
-1	test@mju.ac.kr	$2a$10$dummyhashedpassword1234567890	테스트학생	컴퓨터공학과	4학년	\N	STUDENT	\N	2026-05-03 14:33:36.143031	\N
-2	admin@mju.ac.kr	$2a$10$dummyhashedpassword0987654321	관리자	시스템운영	0학년	\N	ADMIN	\N	2026-05-03 14:33:36.143031	\N
+1	test@mju.ac.kr	$2a$10$dummyhashedpassword1234567890	테스트학생	컴퓨터공학과	4학년	\N	STUDENT	\N	2026-05-03 20:49:32.934927	\N
+2	admin@mju.ac.kr	$2a$10$dummyhashedpassword0987654321	관리자	시스템운영	0학년	\N	ADMIN	\N	2026-05-03 20:49:32.934927	\N
 \.
 
 
@@ -1852,5 +1851,5 @@ ALTER TABLE ONLY zoopick.cctv_videos
 -- PostgreSQL database dump complete
 --
 
-\unrestrict vBIrKM2y2duz4K4pypk6j8Cz8Q2IhFzURhqsfEuD3qnxQ3Z7cxnbaC7pfprZ26i
+\unrestrict XlB6kP570zX4lMuSdrTtHO8AIXQ9fEQerbTHCGQFod5c8DrjaY4DBO45Kwd4i57
 

@@ -14,11 +14,21 @@ import java.time.Duration;
 public class FastApiProperties {
     private String baseUrl;
     private Vision vision;
+    private Cctv cctv;
 
     @Getter
     @Setter
     public static class Vision {
         private String analyzePath;
+        private Duration connectTimeout;
+        private Duration readTimeout;
+    }
+
+    @Getter
+    @Setter
+    public static class Cctv {
+        private String enqueuePath;
+        private String statusPath;
         private Duration connectTimeout;
         private Duration readTimeout;
     }

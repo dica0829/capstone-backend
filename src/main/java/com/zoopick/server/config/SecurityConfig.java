@@ -38,7 +38,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/images/**").permitAll()
 
                 // Vision 및 CCTV API 허용 (테스트용)
-                .requestMatchers("/api/vision/**", "/api/cctv/**").permitAll()
+                .requestMatchers("/api/vision/**", "/api/cctv/**", "/api/internal/**").permitAll()
                 
                 // [수정 포인트] 실제 테스트 주소인 /api/auth/... 계열을 모두 허용 목록에 추가
                 .requestMatchers("/api/auth/login", "/api/auth/signup", "/api/auth/check-nickname", "/api/auth/validate").permitAll()

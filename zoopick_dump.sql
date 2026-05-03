@@ -347,6 +347,7 @@ CREATE TABLE zoopick.cctv_detections (
                                          detected_at timestamp without time zone NOT NULL,
                                          detected_category zoopick.item_category,
                                          detected_color zoopick.item_color,
+                                         embedding zoopick.vector(512),
                                          item_snapshot_url character varying(500) NOT NULL,
                                          moment_snapshot_url character varying(500) NOT NULL,
                                          review_status zoopick.detection_review_status DEFAULT 'PENDING'::zoopick.detection_review_status NOT NULL,

@@ -40,16 +40,27 @@ public class CctvService {
         CctvVideo video = cctvVideoRepository.findById(videoId)
                 .orElseThrow(() -> new BadRequestException("비디오를 찾을 수 없습니다. ID: " + videoId, "VIDEO_NOT_FOUND"));
 
-        // Progress 정보 확인 또는 생성
-        CctvVideoProgress progress = cctvVideoProgressRepository.findByCctvVideoId(videoId)
-                .orElseGet(() -> {
-                    CctvVideoProgress newProgress = CctvVideoProgress.builder()
-                            .cctvVideo(video)
-                            .status(VideoAnalysisStatus.PENDING)
-                            .totalDurationSeconds(video.getDurationMinutes() * 60)
-                            .build();
-                    return cctvVideoProgressRepository.save(newProgress);
-                });
+        // Progress 정보 확인 및 중복 분석 방지
+        CctvVideoProgress progress = cctvVideoProgressRepository.findByCctvVideoId(videoId).orElse(null);
+        
+        if (progress != null) {
+            if (progress.getStatus() == VideoAnalysisStatus.COMPLETED) {
+                throw new BadRequestException("이미 분석이 완료된 비디오입니다. ID: " + videoId, "ALREADY_COMPLETED");
+            } else if (progress.getStatus() == VideoAnalysisStatus.PENDING || progress.getStatus() == VideoAnalysisStatus.IN_PROGRESS) {
+                throw new BadRequestException("이미 분석이 진행 중인 비디오입니다. ID: " + videoId, "ALREADY_PROCESSING");
+            }
+            // FAILED인 경우 재시도를 위해 상태 초기화
+            progress.setStatus(VideoAnalysisStatus.PENDING);
+            progress.setAnalyzedSeconds(0);
+            progress.setProgressPercent(0.0);
+        } else {
+            progress = CctvVideoProgress.builder()
+                    .cctvVideo(video)
+                    .status(VideoAnalysisStatus.PENDING)
+                    .totalDurationSeconds(video.getDurationMinutes() * 60)
+                    .build();
+        }
+        cctvVideoProgressRepository.save(progress);
 
         // FastAPI 요청 DTO 생성
         CctvEnqueueRequest request = CctvEnqueueRequest.builder()

@@ -2,13 +2,14 @@ package com.zoopick.server.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.Array;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 import java.time.LocalDateTime;
 
 
 @Entity
-@Table(name = "cctv_detections")
+@Table(name = "cctv_detections", schema = "zoopick")
 @Getter
 @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -36,7 +37,9 @@ public class CctvDetection {
     @Column(name = "detected_color", columnDefinition = "item_color")
     private ItemColor detectedColor;
 
-    @Column(name = "embedding", columnDefinition = "vector(512)")
+    @Column(columnDefinition = "vector(512)")
+    @JdbcTypeCode(SqlTypes.VECTOR)
+    @Array(length = 512)
     private float[] embedding;
 
     @Column(name = "item_snapshot_url", length = 500)

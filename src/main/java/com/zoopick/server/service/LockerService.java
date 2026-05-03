@@ -1,95 +1,138 @@
 package com.zoopick.server.service;
 
-import com.sun.jdi.connect.IllegalConnectorArgumentsException;
-import com.zoopick.server.entity.Locker;
-import com.zoopick.server.entity.LockerCommand;
-import com.zoopick.server.locker.CommandStatus;
-import com.zoopick.server.locker.LockerCommandType;
-import com.zoopick.server.locker.LockerStatus;
+import com.zoopick.server.entity.*;
+import com.zoopick.server.exception.BadRequestException;
+import com.zoopick.server.exception.DataNotFoundException;
+import com.zoopick.server.repository.ItemRepository;
+import com.zoopick.server.repository.LockerCommandRepository;
+import com.zoopick.server.repository.LockerRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.zoopick.server.repository.LockerCommandRepository;
-import com.zoopick.server.repository.LockerRepository;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class LockerService {
+
     private final LockerRepository lockerRepository;
     private final LockerCommandRepository commandRepository;
+    private final ItemRepository itemRepository;
 
     @Transactional
     public LockerCommand requestUnlock(Long lockerId, Long itemId) {
-        Locker locker = lockerRepository.findById(lockerId).orElseThrow(() -> new IllegalArgumentException("Locker not found: " + lockerId));
+        Locker locker = lockerRepository.findById(lockerId)
+                .orElseThrow(() -> DataNotFoundException.from("사물함", lockerId));
 
         if (locker.getStatus() == LockerStatus.MAINTENANCE) {
-            throw new IllegalArgumentException("사물함 점검 중입니다");
+            throw new BadRequestException(
+                    "사물함이 점검 중입니다.",
+                    "Locker " + lockerId + " is under maintenance");
         }
 
-        boolean isStorage = (locker.getCurrentItemId() == null);
+        boolean isStorage = (locker.getCurrentItem() == null);
 
         if (isStorage) {
-            if (itemId == null) {
-                throw new IllegalArgumentException("보관할 item_id가 필요합니다");
-            }
-            locker.setStatus(LockerStatus.IN_USE);
-            locker.setCurrentItemId(itemId);
-            //itemRepository update status는 어떻게 처리를 해야하나
-            log.info("[STORE]: locker_id={}, item_id={}", lockerId, itemId);
+            handleStorage(locker, itemId);
         } else {
-            Long storedItemId = locker.getCurrentItemId();
-            locker.setStatus(LockerStatus.EMPTY);
-            locker.setCurrentItemId(null);
-
-            log.info("[RETRIEVE] locker_id={}, item_id={} 회수 요청", lockerId, storedItemId);
+            handleRetrieval(locker);
         }
 
-        return enqueue(lockerId, LockerCommandType.OPEN);
+        return enqueue(locker, LockerCommandType.OPEN);
     }
 
-    private LockerCommand enqueue(Long lockerId, LockerCommandType type) {
-        return commandRepository.save(LockerCommand.builder()
-                .lockerId(lockerId)
-                .command(type)
-                .status(CommandStatus.PENDING)
-                .createdAt(Instant.now())
-                .build());
+    private void handleStorage(Locker locker, Long itemId) {
+        if (itemId == null) {
+            throw new BadRequestException(
+                    "보관할 물품 정보가 필요합니다.",
+                    "itemId is required for storage flow");
+        }
+
+        Item item = itemRepository.findById(itemId)
+                .orElseThrow(() -> DataNotFoundException.from("물품", itemId));
+
+        if (item.getType() != ItemType.FOUND) {
+            throw new BadRequestException(
+                    "습득물만 사물함에 보관할 수 있습니다.",
+                    "Item " + itemId + " type is " + item.getType());
+        }
+        if (item.getStatus() != ItemStatus.REPORTED) {
+            throw new BadRequestException(
+                    "보관 가능한 상태의 물품이 아닙니다.",
+                    "Item " + itemId + " status is " + item.getStatus());
+        }
+
+        locker.setStatus(LockerStatus.IN_USE);
+        locker.setCurrentItem(item);
+        item.setStatus(ItemStatus.IN_LOCKER);
+
+        log.info("[STORE] locker_id={} item_id={} 보관 요청",
+                locker.getId(), itemId);
+    }
+
+    private void handleRetrieval(Locker locker) {
+        Item stored = locker.getCurrentItem();
+        LocalDateTime now = LocalDateTime.now();
+
+        locker.setStatus(LockerStatus.EMPTY);
+        locker.setCurrentItem(null);
+        stored.setStatus(ItemStatus.RETURNED);
+        stored.setReturnedAt(now);
+
+        log.info("[RETRIEVE] locker_id={} item_id={} 회수 요청",
+                locker.getId(), stored.getId());
     }
 
     @Transactional
     public LockerCommand requestLock(Long lockerId) {
-        lockerRepository.findById(lockerId).orElseThrow(() -> new IllegalArgumentException("Locker not found: " + lockerId));
-        log.info("[CLOSE] locker_id={} 잠금요청", lockerId);
-        return enqueue(lockerId, LockerCommandType.CLOSE);
+        Locker locker = lockerRepository.findById(lockerId)
+                .orElseThrow(() -> DataNotFoundException.from("사물함", lockerId));
+        log.info("[CLOSE] locker_id={} 잠금 요청", lockerId);
+        return enqueue(locker, LockerCommandType.CLOSE);
+    }
+
+    private LockerCommand enqueue(Locker locker, LockerCommandType type) {
+        return commandRepository.save(LockerCommand.builder()
+                .locker(locker)
+                .command(type)
+                .status(LockerCommandStatus.PENDING)
+                .createdAt(LocalDateTime.now())
+                .build());
     }
 
     @Transactional
     public Optional<LockerCommand> pollNextCommand(Long lockerId) {
-        Optional<LockerCommand> next = commandRepository.findFirstByLockerIdAndStatusOrderByCreatedAtAsc(lockerId, CommandStatus.PENDING);
+        Optional<LockerCommand> next = commandRepository
+                .findFirstByLocker_IdAndStatusOrderByCreatedAtAsc(
+                        lockerId, LockerCommandStatus.PENDING);
 
         next.ifPresent(cmd -> {
-            cmd.setStatus(CommandStatus.CONSUMED);
-            cmd.setConsumedAt(Instant.now());
-            log.info("[POLL] locker_id={}, command={} type={} consumed", lockerId, cmd, cmd.getCommand());
+            cmd.setStatus(LockerCommandStatus.CONSUMED);
+            cmd.setConsumedAt(LocalDateTime.now());
+            log.info("[POLL] locker_id={} command_id={} type={} consumed",
+                    lockerId, cmd.getId(), cmd.getCommand());
         });
         return next;
     }
 
     @Transactional
     public void ackCommand(Long lockerId, Long commandId) {
-        LockerCommand cmd =commandRepository.findById(commandId).orElseThrow(() -> new IllegalArgumentException("Command not found: " + commandId));
+        LockerCommand cmd = commandRepository.findById(commandId)
+                .orElseThrow(() -> DataNotFoundException.from("명령", commandId));
 
-        if(!cmd.getLockerId().equals(lockerId)) {
-            throw new IllegalArgumentException("locker_id 불일치");
+        if (!cmd.getLocker().getId().equals(lockerId)) {
+            throw new BadRequestException(
+                    "잘못된 요청입니다.",
+                    "command " + commandId + " does not belong to locker " + lockerId);
         }
-        cmd.setStatus(CommandStatus.COMPLETED);
-        cmd.setCompletedAt(Instant.now());
-        log.info("[ACK] locker_id={}, command={} type={} consumed", lockerId, cmd, cmd.getCommand());
-    }
 
+        cmd.setStatus(LockerCommandStatus.COMPLETED);
+        cmd.setCompletedAt(LocalDateTime.now());
+        log.info("[ACK] locker_id={} command_id={} type={} completed",
+                lockerId, commandId, cmd.getCommand());
+    }
 }

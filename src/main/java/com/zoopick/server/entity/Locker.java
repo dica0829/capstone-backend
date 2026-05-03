@@ -1,11 +1,12 @@
 package com.zoopick.server.entity;
 
-import com.zoopick.server.locker.LockerStatus;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Entity
-@Table(name = "lockers")
+@Table(name = "lockers", schema = "zoopick")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -16,9 +17,11 @@ public class Locker {
     private Long id;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(nullable = false, columnDefinition = "locker_status")
     private LockerStatus status;
 
-    @Column(name = "current_item_id")
-    private Long currentItemId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "current_item_id")
+    private Item currentItem;   // 보관 중인 아이템 (없으면 null)
 }

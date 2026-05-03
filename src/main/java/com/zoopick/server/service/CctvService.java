@@ -99,7 +99,6 @@ public class CctvService {
 
         progress.setStatus(VideoAnalysisStatus.valueOf(callback.getStatus()));
         progress.setAnalyzedSeconds(callback.getAnalyzedSeconds());
-        progress.setProgressPercent(callback.getProgressPercent());
         progress.setEstimatedCompletionAt(callback.getEstimatedCompletionAt());
 
         if (progress.getStatus() == VideoAnalysisStatus.IN_PROGRESS && progress.getStartedAt() == null) {
@@ -107,8 +106,13 @@ public class CctvService {
         }
 
         cctvVideoProgressRepository.save(progress);
-        log.debug("CCTV Progress updated: video_id={}, progress={}%, status={}",
-                callback.getVideoId(), callback.getProgressPercent(), callback.getStatus());
+
+        double calculatedPercent = callback.getTotalSeconds() > 0 
+                ? Math.round((double) callback.getAnalyzedSeconds() / callback.getTotalSeconds() * 1000.0) / 10.0 
+                : 0.0;
+
+        log.info("CCTV Progress updated: video_id={}, progress={}%, analyzed_sec={}, total_sec={}, status={}",
+                callback.getVideoId(), calculatedPercent, callback.getAnalyzedSeconds(), callback.getTotalSeconds(), callback.getStatus());
     }
 
     @Transactional

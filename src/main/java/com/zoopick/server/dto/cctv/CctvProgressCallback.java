@@ -24,9 +24,6 @@ public class CctvProgressCallback {
     @JsonProperty("total_seconds")
     private Integer totalSeconds;
 
-    @JsonProperty("progress_percent")
-    private Double progressPercent;
-
     @JsonProperty("estimated_completion_at")
     private LocalDateTime estimatedCompletionAt;
 }

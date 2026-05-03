@@ -387,10 +387,8 @@ CREATE TABLE zoopick.cctv_video_progress (
                                              id bigint NOT NULL,
                                              video_id bigint NOT NULL,
                                              status zoopick.video_analysis_status DEFAULT 'PENDING'::zoopick.video_analysis_status NOT NULL,
-                                             analyzed_until timestamp without time zone,
                                              total_duration_seconds integer NOT NULL,
                                              analyzed_seconds integer DEFAULT 0 NOT NULL,
-                                             progress_percent real,
                                              estimated_completion_at timestamp without time zone,
                                              started_at timestamp without time zone,
                                              last_updated_at timestamp without time zone
@@ -1046,7 +1044,7 @@ COPY zoopick.cctv_detections (id, video_id, detected_at, detected_category, dete
 -- Data for Name: cctv_video_progress; Type: TABLE DATA; Schema: zoopick; Owner: postgres
 --
 
-COPY zoopick.cctv_video_progress (id, video_id, status, analyzed_until, total_duration_seconds, analyzed_seconds, progress_percent, estimated_completion_at, started_at, last_updated_at) FROM stdin;
+COPY zoopick.cctv_video_progress (id, video_id, status, total_duration_seconds, analyzed_seconds, estimated_completion_at, started_at, last_updated_at) FROM stdin;
 \.
 
 
@@ -1054,7 +1052,7 @@ COPY zoopick.cctv_video_progress (id, video_id, status, analyzed_until, total_du
 -- Data for Name: cctv_videos; Type: TABLE DATA; Schema: zoopick; Owner: postgres
 --
 
-COPY zoopick.cctv_videos (id, room_id, recorded_at, duration_minutes, video_url, created_at) FROM stdin;
+COPY zoopick.cctv_videos (id, room_id, recorded_at, duration_seconds, video_url, created_at) FROM stdin;
 \.
 
 

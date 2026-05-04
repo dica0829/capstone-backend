@@ -47,7 +47,7 @@ public class CctvService {
         if (progress != null) {
             if (progress.getStatus() == VideoAnalysisStatus.COMPLETED) {
                 throw new BadRequestException("이미 분석이 완료된 비디오입니다. ID: " + videoId, "ALREADY_COMPLETED");
-            } else if (progress.getStatus() == VideoAnalysisStatus.PENDING || progress.getStatus() == VideoAnalysisStatus.IN_PROGRESS) {
+            } else if (progress.getStatus() == VideoAnalysisStatus.IN_PROGRESS) {
                 throw new BadRequestException("이미 분석이 진행 중인 비디오입니다. ID: " + videoId, "ALREADY_PROCESSING");
             }
             // FAILED인 경우 재시도를 위해 상태 초기화

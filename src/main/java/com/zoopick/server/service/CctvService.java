@@ -65,7 +65,7 @@ public class CctvService {
         // FastAPI 요청 DTO 생성
         CctvEnqueueRequest request = CctvEnqueueRequest.builder()
                 .videoId(videoId)
-                .videoPath(video.getVideoUrl()) // DB의 video_url이 절대 경로라고 가정
+                .videoPath(video.getVideoUrl())
                 .durationSeconds(progress.getTotalDurationSeconds())
                 .recordedAt(video.getRecordedAt())
                 .callbackBaseUrl(callbackBaseUrl)
@@ -151,7 +151,7 @@ public class CctvService {
         cctvVideoProgressRepository.save(progress);
         log.info("CCTV Video analysis completed: video_id={}, total_detections={}",
                 callback.getVideoId(), callback.getTotalDetections());
-
+        // TODO: redis에 5분 적재 후 중복 처리 response
         // TODO: 매칭 트리거 및 알림 로직 추가
     }
 

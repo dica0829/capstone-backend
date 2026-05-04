@@ -5,12 +5,14 @@ import com.zoopick.server.dto.cctv.*;
 import com.zoopick.server.entity.CctvDetection;
 import com.zoopick.server.entity.CctvVideo;
 import com.zoopick.server.entity.CctvVideoProgress;
+import com.zoopick.server.entity.Room;
 import com.zoopick.server.entity.VideoAnalysisStatus;
 import com.zoopick.server.exception.BadRequestException;
 import com.zoopick.server.exception.DataNotFoundException;
 import com.zoopick.server.repository.CctvDetectionRepository;
 import com.zoopick.server.repository.CctvVideoProgressRepository;
 import com.zoopick.server.repository.CctvVideoRepository;
+import com.zoopick.server.repository.RoomRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -32,6 +34,7 @@ public class CctvService {
     private final CctvVideoRepository cctvVideoRepository;
     private final CctvVideoProgressRepository cctvVideoProgressRepository;
     private final CctvDetectionRepository cctvDetectionRepository;
+    private final RoomRepository roomRepository;
     private final StringRedisTemplate stringRedisTemplate;
     private final RestClient fastApiRestClient;
     private final FastApiProperties fastApiProperties;
@@ -43,13 +46,50 @@ public class CctvService {
     private String snapshotBasePath;
 
     @Transactional
+    public Long createVideo(CctvVideoCreateRequest request) {
+        Room room = roomRepository.findByIdOrThrow(request.getRoomId());
+
+        CctvVideo savedVideo = cctvVideoRepository.save(
+                CctvVideo.builder()
+                        .room(room)
+                        .recordedAt(request.getRecordedAt())
+                        .durationSeconds(request.getDurationSeconds())
+                        .videoUrl(request.getVideoUrl())
+                        .build());
+
+        return savedVideo.getId();
+    }
+
+    public CctvVideoCreateResponse createVideoAndEnqueue(CctvVideoCreateRequest request) {
+        Long videoId = createVideo(request);
+
+        try {
+            CctvEnqueueResponse enqueueResponse = enqueueVideo(videoId);
+            return CctvVideoCreateResponse.builder()
+                    .videoId(videoId)
+                    .queued(enqueueResponse != null && enqueueResponse.isQueued())
+                    .queuePosition(enqueueResponse != null ? enqueueResponse.getQueuePosition() : null)
+                    .estimatedStartAt(enqueueResponse != null ? enqueueResponse.getEstimatedStartAt() : null)
+                    .build();
+        } catch (BadRequestException exception) {
+            log.warn("CCTV enqueue failed after video save: video_id={}, reason={}", videoId,
+                    exception.getClientMessage());
+            return CctvVideoCreateResponse.builder()
+                    .videoId(videoId)
+                    .queued(false)
+                    .reason(exception.getClientMessage())
+                    .build();
+        }
+    }
+
+    @Transactional
     public CctvEnqueueResponse enqueueVideo(Long videoId) {
         CctvVideo video = cctvVideoRepository.findById(videoId)
                 .orElseThrow(() -> new DataNotFoundException("비디오를 찾을 수 없습니다. ID: " + videoId, "VIDEO_NOT_FOUND"));
 
         // Progress 정보 확인 및 중복 분석 방지
         CctvVideoProgress progress = cctvVideoProgressRepository.findByCctvVideoId(videoId).orElse(null);
-        
+
         if (progress != null) {
             if (progress.getStatus() == VideoAnalysisStatus.COMPLETED) {
                 throw new BadRequestException("이미 분석이 완료된 비디오입니다. ID: " + videoId, "ALREADY_COMPLETED");
@@ -112,12 +152,13 @@ public class CctvService {
 
         cctvVideoProgressRepository.save(progress);
 
-        double calculatedPercent = callback.getTotalSeconds() > 0 
-                ? Math.round((double) callback.getAnalyzedSeconds() / callback.getTotalSeconds() * 1000.0) / 10.0 
+        double calculatedPercent = callback.getTotalSeconds() > 0
+                ? Math.round((double) callback.getAnalyzedSeconds() / callback.getTotalSeconds() * 1000.0) / 10.0
                 : 0.0;
 
         log.info("CCTV Progress updated: video_id={}, progress={}%, analyzed_sec={}, total_sec={}, status={}",
-                callback.getVideoId(), calculatedPercent, callback.getAnalyzedSeconds(), callback.getTotalSeconds(), callback.getStatus());
+                callback.getVideoId(), calculatedPercent, callback.getAnalyzedSeconds(), callback.getTotalSeconds(),
+                callback.getStatus());
     }
 
     @Transactional
@@ -127,7 +168,7 @@ public class CctvService {
                 .setIfAbsent(idempotencyKey, "1", DETECTION_IDEMPOTENCY_TTL);
 
         if (!Boolean.TRUE.equals(isFirstRequest)) {
-            log.info("Duplicate detection callback ignored: video_id={}, detection_id={}",
+            log.info("Duplicate detection callback ignored: video_id={}, ai_detection_id={}",
                     callback.getVideoId(), callback.getDetectionId());
             return new DetectionRegisterResult(true, null);
         }

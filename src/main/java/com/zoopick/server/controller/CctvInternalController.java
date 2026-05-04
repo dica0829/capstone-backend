@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @Slf4j
@@ -27,8 +28,14 @@ public class CctvInternalController {
 
     @PostMapping("/detection")
     public ResponseEntity<?> registerDetection(@RequestBody CctvDetectionCallback callback) {
-        cctvService.registerDetection(callback);
-        return ResponseEntity.ok(Map.of("ok", true));
+        CctvService.DetectionRegisterResult result = cctvService.registerDetection(callback);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("ok", true);
+        response.put("duplicate", result.duplicate());
+        response.put("detection_db_id", result.detectionDbId());
+
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/completed")

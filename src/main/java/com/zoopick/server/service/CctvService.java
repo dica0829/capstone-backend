@@ -14,19 +14,25 @@ import com.zoopick.server.repository.CctvVideoRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClient;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class CctvService {
+    private static final String DETECTION_IDEMPOTENCY_KEY_PREFIX = "cctv:detection:";
+    private static final Duration DETECTION_IDEMPOTENCY_TTL = Duration.ofMinutes(5);
+
     private final CctvVideoRepository cctvVideoRepository;
     private final CctvVideoProgressRepository cctvVideoProgressRepository;
     private final CctvDetectionRepository cctvDetectionRepository;
+    private final StringRedisTemplate stringRedisTemplate;
     private final RestClient fastApiRestClient;
     private final FastApiProperties fastApiProperties;
 
@@ -115,7 +121,17 @@ public class CctvService {
     }
 
     @Transactional
-    public void registerDetection(CctvDetectionCallback callback) {
+    public DetectionRegisterResult registerDetection(CctvDetectionCallback callback) {
+        String idempotencyKey = detectionIdempotencyKey(callback.getVideoId(), callback.getDetectionId());
+        Boolean isFirstRequest = stringRedisTemplate.opsForValue()
+                .setIfAbsent(idempotencyKey, "1", DETECTION_IDEMPOTENCY_TTL);
+
+        if (!Boolean.TRUE.equals(isFirstRequest)) {
+            log.info("Duplicate detection callback ignored: video_id={}, detection_id={}",
+                    callback.getVideoId(), callback.getDetectionId());
+            return new DetectionRegisterResult(true, null);
+        }
+
         CctvVideo video = cctvVideoRepository.findById(callback.getVideoId())
                 .orElseThrow(() -> new DataNotFoundException("비디오를 찾을 수 없습니다. video_id: " + callback.getVideoId(),
                         "VIDEO_NOT_FOUND"));
@@ -133,9 +149,15 @@ public class CctvService {
                 .embedding(callback.getEmbedding())
                 .build();
 
-        cctvDetectionRepository.save(detection);
-        log.info("New detection registered: video_id={}, ai_detection_id={}",
-                callback.getVideoId(), callback.getDetectionId());
+        try {
+            CctvDetection savedDetection = cctvDetectionRepository.save(detection);
+            log.info("New detection registered: video_id={}, ai_detection_id={}",
+                    callback.getVideoId(), callback.getDetectionId());
+            return new DetectionRegisterResult(false, savedDetection.getId());
+        } catch (RuntimeException e) {
+            stringRedisTemplate.delete(idempotencyKey);
+            throw e;
+        }
     }
 
     @Transactional
@@ -151,7 +173,6 @@ public class CctvService {
         cctvVideoProgressRepository.save(progress);
         log.info("CCTV Video analysis completed: video_id={}, total_detections={}",
                 callback.getVideoId(), callback.getTotalDetections());
-        // TODO: redis에 5분 적재 후 중복 처리 response
         // TODO: 매칭 트리거 및 알림 로직 추가
     }
 
@@ -167,5 +188,12 @@ public class CctvService {
         cctvVideoProgressRepository.save(progress);
         log.error("CCTV Video analysis failed: video_id={}, error_code={}, error_message={}",
                 callback.getVideoId(), callback.getErrorCode(), callback.getErrorMessage());
+    }
+
+    private String detectionIdempotencyKey(Long videoId, String detectionId) {
+        return DETECTION_IDEMPOTENCY_KEY_PREFIX + videoId + ":" + detectionId;
+    }
+
+    public record DetectionRegisterResult(boolean duplicate, Long detectionDbId) {
     }
 }

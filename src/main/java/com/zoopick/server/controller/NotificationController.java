@@ -3,6 +3,7 @@ package com.zoopick.server.controller;
 import com.google.firebase.messaging.FirebaseMessagingException;
 import com.zoopick.server.dto.CommonResponse;
 import com.zoopick.server.dto.notification.*;
+import com.zoopick.server.security.UserPrincipal;
 import com.zoopick.server.service.NotificationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -13,7 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NullMarked;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -32,11 +33,10 @@ public class NotificationController {
     })
     @PostMapping("/api/auth/device-token")
     public ResponseEntity<CommonResponse<String>> registerFcmToken(
-            Authentication authentication,
+            @AuthenticationPrincipal UserPrincipal principal,
             @RequestBody @Valid FcmTokenRegistrationRequest request
     ) {
-        String email = authentication.getName();
-        notificationService.register(email, request.getToken());
+        notificationService.register(principal.id(), request.getToken());
         return ResponseEntity.ok(CommonResponse.success("FCM 토큰이 등록되었습니다."));
     }
 
@@ -76,9 +76,8 @@ public class NotificationController {
             @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음")
     })
     @GetMapping("/api/notifications")
-    public ResponseEntity<CommonResponse<List<NotificationRecord>>> getNotifications(Authentication authentication) {
-        String email = authentication.getName();
-        List<NotificationRecord> notificationRecords = notificationService.getNotifications(email);
+    public ResponseEntity<CommonResponse<List<NotificationRecord>>> getNotifications(@AuthenticationPrincipal UserPrincipal principal) {
+        List<NotificationRecord> notificationRecords = notificationService.getNotifications(principal.id());
         return ResponseEntity.ok(CommonResponse.success(notificationRecords));
     }
 
@@ -88,9 +87,8 @@ public class NotificationController {
             @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음")
     })
     @GetMapping("/api/notifications/unread")
-    public ResponseEntity<CommonResponse<List<NotificationRecord>>> getUnReadNotifications(Authentication authentication) {
-        String email = authentication.getName();
-        List<NotificationRecord> notificationRecords = notificationService.getUnreadNotifications(email);
+    public ResponseEntity<CommonResponse<List<NotificationRecord>>> getUnReadNotifications(@AuthenticationPrincipal UserPrincipal principal) {
+        List<NotificationRecord> notificationRecords = notificationService.getUnreadNotifications(principal.id());
         return ResponseEntity.ok(CommonResponse.success(notificationRecords));
     }
 
@@ -101,9 +99,11 @@ public class NotificationController {
             @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없거나 알림을 찾을 수 없음")
     })
     @PatchMapping("/api/notifications/mark-as-read")
-    public ResponseEntity<CommonResponse<ChangeReadStatusResult>> markAsRead(Authentication authentication, @RequestBody @Valid ChangeReadStatusRequest request) {
-        String email = authentication.getName();
-        ChangeReadStatusResult result = notificationService.markAsRead(email, request.getNotificationIds());
+    public ResponseEntity<CommonResponse<ChangeReadStatusResult>> markAsRead(
+            @AuthenticationPrincipal UserPrincipal principal,
+            @RequestBody @Valid ChangeReadStatusRequest request
+    ) {
+        ChangeReadStatusResult result = notificationService.markAsRead(principal.id(), request.getNotificationIds());
         return ResponseEntity.ok(CommonResponse.success(result));
     }
 
@@ -114,9 +114,11 @@ public class NotificationController {
             @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없거나 알림을 찾을 수 없음")
     })
     @PatchMapping("/api/notifications/{notificationId}/mark-as-read")
-    public ResponseEntity<CommonResponse<ChangeReadStatusResult>> markAsRead(Authentication authentication, @PathVariable long notificationId) {
-        String email = authentication.getName();
-        ChangeReadStatusResult result = notificationService.markAsRead(email, List.of(notificationId));
+    public ResponseEntity<CommonResponse<ChangeReadStatusResult>> markAsRead(
+            @AuthenticationPrincipal UserPrincipal principal,
+            @PathVariable long notificationId
+    ) {
+        ChangeReadStatusResult result = notificationService.markAsRead(principal.id(), List.of(notificationId));
         return ResponseEntity.ok(CommonResponse.success(result));
     }
 
@@ -127,9 +129,11 @@ public class NotificationController {
             @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없거나 알림을 찾을 수 없음")
     })
     @PatchMapping("/api/notifications/mark-as-unread")
-    public ResponseEntity<CommonResponse<ChangeReadStatusResult>> markAsUnread(Authentication authentication, @RequestBody @Valid ChangeReadStatusRequest request) {
-        String email = authentication.getName();
-        ChangeReadStatusResult result = notificationService.markAsUnread(email, request.getNotificationIds());
+    public ResponseEntity<CommonResponse<ChangeReadStatusResult>> markAsUnread(
+            @AuthenticationPrincipal UserPrincipal principal,
+            @RequestBody @Valid ChangeReadStatusRequest request
+    ) {
+        ChangeReadStatusResult result = notificationService.markAsUnread(principal.id(), request.getNotificationIds());
         return ResponseEntity.ok(CommonResponse.success(result));
     }
 
@@ -140,9 +144,11 @@ public class NotificationController {
             @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없거나 알림을 찾을 수 없음")
     })
     @PatchMapping("/api/notifications/{notificationId}/mark-as-unread")
-    public ResponseEntity<CommonResponse<ChangeReadStatusResult>> markAsUnread(Authentication authentication, @PathVariable long notificationId) {
-        String email = authentication.getName();
-        ChangeReadStatusResult result = notificationService.markAsUnread(email, List.of(notificationId));
+    public ResponseEntity<CommonResponse<ChangeReadStatusResult>> markAsUnread(
+            @AuthenticationPrincipal UserPrincipal principal,
+            @PathVariable long notificationId
+    ) {
+        ChangeReadStatusResult result = notificationService.markAsUnread(principal.id(), List.of(notificationId));
         return ResponseEntity.ok(CommonResponse.success(result));
     }
 }

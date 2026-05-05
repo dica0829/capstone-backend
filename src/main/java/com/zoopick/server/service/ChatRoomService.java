@@ -32,10 +32,10 @@ public class ChatRoomService {
     private final ChatMessageMapper chatMessageMapper;
     private final ChatRoomMapper chatRoomMapper;
 
-    public CreateChatRoomResult createChatRoom(String requesterEmail, CreateChatRoomRequest createChatRoomRequest) {
+    public CreateChatRoomResult createChatRoom(long requesterId, CreateChatRoomRequest createChatRoomRequest) {
         long itemId = createChatRoomRequest.getItemId();
         Item item = itemRepository.findByIdOrThrow(itemId);
-        User requester = userRepository.findBySchoolEmailOrThrow(requesterEmail);
+        User requester = userRepository.findByIdOrThrow(requesterId);
         User counterpart = userRepository.findByIdOrThrow(createChatRoomRequest.getCounterpartId());
         ChatRoom chatRoom = ChatRoom.builder()
                 .item(item)
@@ -82,9 +82,8 @@ public class ChatRoomService {
         return requester;
     }
 
-    public FindChatRoomResult findChatRoom(String email, long itemId) {
-        User user = userRepository.findBySchoolEmailOrThrow(email);
-        Optional<Long> chatRoomId = chatRoomRepository.findByParticipantAndItemIdIs(user, itemId)
+    public FindChatRoomResult findChatRoom(long userId, long itemId) {
+        Optional<Long> chatRoomId = chatRoomRepository.findByParticipantIdAndItemIdIs(userId, itemId)
                 .map(ChatRoom::getId);
 
         return new FindChatRoomResult(chatRoomId.isPresent(), chatRoomId.orElse(0L));
@@ -97,25 +96,24 @@ public class ChatRoomService {
             throw new BadRequestException("사용자가 포함되지 않은 채팅방입니다.", user.getId() + " is not in chat room " + chatRoom.getId());
     }
 
-    public ListChatRoomResult getChatRooms(String email) {
-        User user = userRepository.findBySchoolEmailOrThrow(email);
-        List<ChatRoom> chatRooms = chatRoomRepository.findByParticipant(user);
+    public ListChatRoomResult getChatRooms(long userId) {
+        List<ChatRoom> chatRooms = chatRoomRepository.findByParticipant(userId);
         List<Long> chatRoomIds = chatRooms.stream()
                 .map(ChatRoom::getId)
                 .toList();
         return new ListChatRoomResult(chatRoomIds);
     }
 
-    public ChatRoomRecord getChatRoom(String email, long chatRoomId) {
-        User user = userRepository.findBySchoolEmailOrThrow(email);
+    public ChatRoomRecord getChatRoom(long userId, long chatRoomId) {
+        User user = userRepository.findByIdOrThrow(userId);
         ChatRoom chatRoom = chatRoomRepository.findByIdOrThrow(chatRoomId);
         validateParticipant(chatRoom, user);
 
         return chatRoomMapper.toChatRoomRecord(chatRoom);
     }
 
-    public ListMessagesResult getMessages(String email, long chatRoomId, @Nullable MessageFilter filter) {
-        User user = userRepository.findBySchoolEmailOrThrow(email);
+    public ListMessagesResult getMessages(long userId, long chatRoomId, @Nullable MessageFilter filter) {
+        User user = userRepository.findByIdOrThrow(userId);
         ChatRoom chatRoom = chatRoomRepository.findByIdOrThrow(chatRoomId);
         validateParticipant(chatRoom, user);
 
@@ -127,8 +125,8 @@ public class ChatRoomService {
         return new ListMessagesResult(chatRoomRecord, messageRecords);
     }
 
-    public void sendMessage(String senderEmail, long chatRoomId, String message) throws FirebaseMessagingException {
-        User sender = userRepository.findBySchoolEmailOrThrow(senderEmail);
+    public void sendMessage(long senderId, long chatRoomId, String message) throws FirebaseMessagingException {
+        User sender = userRepository.findByIdOrThrow(senderId);
         ChatRoom chatRoom = chatRoomRepository.findByIdOrThrow(chatRoomId);
         validateParticipant(chatRoom, sender);
 

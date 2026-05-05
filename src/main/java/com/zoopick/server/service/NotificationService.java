@@ -34,9 +34,8 @@ public class NotificationService {
     private final NotificationRepository notificationRepository;
     private final NotificationMapper notificationMapper;
 
-    public void register(String email, String fcmToken) throws AccessTokenException, DataNotFoundException {
-        User user = userRepository.findBySchoolEmail(email)
-                .orElseThrow(() -> DataNotFoundException.from("사용자", email));
+    public void register(long userId, String fcmToken) throws AccessTokenException, DataNotFoundException {
+        User user = userRepository.findByIdOrThrow(userId);
         user.setFcmToken(fcmToken);
         userRepository.save(user);
     }
@@ -94,17 +93,16 @@ public class NotificationService {
         return FirebaseMessaging.getInstance().sendEach(messages).toString();
     }
 
-    public List<NotificationRecord> getNotifications(String email) {
-        return findNotificationsWith(email, notificationRepository::findByUserIdOrderByCreatedAtDesc);
+    public List<NotificationRecord> getNotifications(long userId) {
+        return findNotificationsWith(userId, notificationRepository::findByUserIdOrderByCreatedAtDesc);
     }
 
-    public List<NotificationRecord> getUnreadNotifications(String email) {
-        return findNotificationsWith(email, notificationRepository::findByUserIdAndReadAtIsNullOrderByCreatedAtDesc);
+    public List<NotificationRecord> getUnreadNotifications(long userId) {
+        return findNotificationsWith(userId, notificationRepository::findByUserIdAndReadAtIsNullOrderByCreatedAtDesc);
     }
 
-    private List<NotificationRecord> findNotificationsWith(String email, Function<Long, List<ZoopickNotification>> repositoryAccessor) {
-        User user = userRepository.findBySchoolEmail(email)
-                .orElseThrow(() -> DataNotFoundException.from("사용자", email));
+    private List<NotificationRecord> findNotificationsWith(long userId, Function<Long, List<ZoopickNotification>> repositoryAccessor) {
+        User user = userRepository.findByIdOrThrow(userId);
 
         List<ZoopickNotification> notifications = repositoryAccessor.apply(user.getId());
         return notifications.stream()
@@ -112,22 +110,22 @@ public class NotificationService {
                 .toList();
     }
 
-    public ChangeReadStatusResult markAsRead(String email, List<Long> notificationIds) {
-        return changeReadStatusRequest(email, notificationIds, notification -> notification.setReadAt(LocalDateTime.now()));
+    public ChangeReadStatusResult markAsRead(long userId, List<Long> notificationIds) {
+        return changeReadStatusRequest(userId, notificationIds, notification -> notification.setReadAt(LocalDateTime.now()));
     }
 
-    public ChangeReadStatusResult markAsUnread(String email, List<Long> notificationIds) {
-        return changeReadStatusRequest(email, notificationIds, notification -> notification.setReadAt(null));
+    public ChangeReadStatusResult markAsUnread(long userId, List<Long> notificationIds) {
+        return changeReadStatusRequest(userId, notificationIds, notification -> notification.setReadAt(null));
     }
 
-    private ChangeReadStatusResult changeReadStatusRequest(String email, List<Long> notificationIds, Consumer<ZoopickNotification> readStatusChangeAction) {
+    private ChangeReadStatusResult changeReadStatusRequest(long userId, List<Long> notificationIds, Consumer<ZoopickNotification> readStatusChangeAction) {
         List<ZoopickNotification> notifications = notificationRepository.findAllById(notificationIds);
         if (notifications.isEmpty())
             throw DataNotFoundException.from("알림", notificationIds);
 
         List<Long> succeedIds = new ArrayList<>();
         for (ZoopickNotification notification : notifications) {
-            if (notification.getUser().getSchoolEmail().equals(email)) {
+            if (notification.getUser().getId() == userId) {
                 readStatusChangeAction.accept(notification);
                 succeedIds.add(notification.getId());
             }

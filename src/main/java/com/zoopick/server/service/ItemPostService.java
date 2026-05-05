@@ -27,8 +27,8 @@ public class ItemPostService {
     private final BuildingRepository buildingRepository;
     private final ItemPostMapper itemPostMapper;
 
-    public CreateItemPostResult createItemPost(CreateItemPostRequest request, String email) {
-        User user = userRepository.findBySchoolEmailOrThrow(email);
+    public CreateItemPostResult createItemPost(long userId, CreateItemPostRequest request) {
+        User user = userRepository.findByIdOrThrow(userId);
         Building building = buildingRepository.findByIdOrThrow(request.getBuildingId());
         Item item = Item.builder()
                 .reporter(user)

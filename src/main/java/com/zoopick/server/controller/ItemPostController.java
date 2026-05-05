@@ -2,6 +2,7 @@ package com.zoopick.server.controller;
 
 import com.zoopick.server.dto.CommonResponse;
 import com.zoopick.server.dto.item.*;
+import com.zoopick.server.security.UserPrincipal;
 import com.zoopick.server.service.ItemPostService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -14,7 +15,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "Item Post API", description = "분실물/습득물 게시글 생성 및 조회 API")
@@ -36,11 +37,10 @@ public class ItemPostController {
     })
     @PostMapping("/post/create")
     public ResponseEntity<CommonResponse<CreateItemPostResult>> createItemPost(
-            @RequestBody CreateItemPostRequest request,
-            Authentication authentication
+            @AuthenticationPrincipal UserPrincipal principal,
+            @RequestBody CreateItemPostRequest request
     ) {
-        String email = authentication.getName();
-        CreateItemPostResult result = itemPostService.createItemPost(request, email);
+        CreateItemPostResult result = itemPostService.createItemPost(principal.id(), request);
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(CommonResponse.success(result));

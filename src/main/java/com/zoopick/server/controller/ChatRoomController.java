@@ -3,6 +3,7 @@ package com.zoopick.server.controller;
 import com.google.firebase.messaging.FirebaseMessagingException;
 import com.zoopick.server.dto.CommonResponse;
 import com.zoopick.server.dto.chat.*;
+import com.zoopick.server.security.UserPrincipal;
 import com.zoopick.server.service.ChatRoomService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -13,7 +14,7 @@ import jakarta.validation.Valid;
 import org.jspecify.annotations.NullMarked;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "Chat Room API", description = "채팅방 생성, 조회 및 메시지 전송 API")
@@ -33,9 +34,8 @@ public class ChatRoomController {
             @ApiResponse(responseCode = "401", description = "인증 필요")
     })
     @GetMapping("/")
-    public ResponseEntity<CommonResponse<ListChatRoomResult>> getChatRooms(Authentication authentication) {
-        String email = authentication.getName();
-        ListChatRoomResult result = chatRoomService.getChatRooms(email);
+    public ResponseEntity<CommonResponse<ListChatRoomResult>> getChatRooms(@AuthenticationPrincipal UserPrincipal principal) {
+        ListChatRoomResult result = chatRoomService.getChatRooms(principal.id());
         return ResponseEntity.ok(CommonResponse.success(result));
     }
 
@@ -47,12 +47,11 @@ public class ChatRoomController {
     })
     @GetMapping("/find/{itemId}")
     public ResponseEntity<CommonResponse<FindChatRoomResult>> findChatRoom(
-            Authentication authentication,
+            @AuthenticationPrincipal UserPrincipal principal,
             @Parameter(description = "채팅방을 찾을 게시글 ID", example = "1")
             @PathVariable long itemId
     ) {
-        String email = authentication.getName();
-        FindChatRoomResult result = chatRoomService.findChatRoom(email, itemId);
+        FindChatRoomResult result = chatRoomService.findChatRoom(principal.id(), itemId);
         return ResponseEntity.ok(CommonResponse.success(result));
     }
 
@@ -65,11 +64,10 @@ public class ChatRoomController {
     })
     @PostMapping("/create")
     public ResponseEntity<CommonResponse<CreateChatRoomResult>> createChatRoom(
-            Authentication authentication,
+            @AuthenticationPrincipal UserPrincipal principal,
             @RequestBody @Valid CreateChatRoomRequest createChatRoomRequest
     ) {
-        String email = authentication.getName();
-        CreateChatRoomResult result = chatRoomService.createChatRoom(email, createChatRoomRequest);
+        CreateChatRoomResult result = chatRoomService.createChatRoom(principal.id(), createChatRoomRequest);
         return ResponseEntity.status(HttpStatus.CREATED).body(CommonResponse.success(result));
     }
 
@@ -82,12 +80,11 @@ public class ChatRoomController {
     })
     @GetMapping("/{roomId}")
     public ResponseEntity<CommonResponse<ChatRoomRecord>> getChatRoom(
-            Authentication authentication,
+            @AuthenticationPrincipal UserPrincipal principal,
             @Parameter(description = "조회할 채팅방 ID", example = "1")
             @PathVariable long roomId
     ) {
-        String email = authentication.getName();
-        ChatRoomRecord record = chatRoomService.getChatRoom(email, roomId);
+        ChatRoomRecord record = chatRoomService.getChatRoom(principal.id(), roomId);
         return ResponseEntity.ok(CommonResponse.success(record));
     }
 
@@ -100,13 +97,12 @@ public class ChatRoomController {
     })
     @RequestMapping(value = "/{roomId}/messages", method = {RequestMethod.GET, RequestMethod.POST})
     public ResponseEntity<CommonResponse<ListMessagesResult>> getChatRoomMessages(
-            Authentication authentication,
+            @AuthenticationPrincipal UserPrincipal principal,
             @Parameter(description = "메시지를 조회할 채팅방 ID", example = "1")
             @PathVariable long roomId,
             @RequestBody(required = false) MessageFilter messageFilter
     ) {
-        String email = authentication.getName();
-        ListMessagesResult result = chatRoomService.getMessages(email, roomId, messageFilter);
+        ListMessagesResult result = chatRoomService.getMessages(principal.id(), roomId, messageFilter);
         return ResponseEntity.ok(CommonResponse.success(result));
     }
 
@@ -120,13 +116,12 @@ public class ChatRoomController {
     })
     @PostMapping("/{roomId}/messages/send")
     public ResponseEntity<CommonResponse<String>> sendMessage(
-            Authentication authentication,
+            @AuthenticationPrincipal UserPrincipal principal,
             @Parameter(description = "메시지를 전송할 채팅방 ID", example = "1")
             @PathVariable long roomId,
             @RequestBody @Valid SendMessageRequest sendMessageRequest
     ) throws FirebaseMessagingException {
-        String email = authentication.getName();
-        chatRoomService.sendMessage(email, roomId, sendMessageRequest.getMessage());
+        chatRoomService.sendMessage(principal.id(), roomId, sendMessageRequest.getMessage());
         return ResponseEntity.ok(CommonResponse.success("done"));
     }
 }

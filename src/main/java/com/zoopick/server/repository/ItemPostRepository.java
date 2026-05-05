@@ -52,4 +52,6 @@ public interface ItemPostRepository extends JpaRepository<ItemPost, Long>, JpaSp
     default ItemPost findByIdOrThrow(Long id) {
         return findById(id).orElseThrow(() -> DataNotFoundException.from("게시물", id));
     }
+
+    long countByUserId(Long userId);
 }

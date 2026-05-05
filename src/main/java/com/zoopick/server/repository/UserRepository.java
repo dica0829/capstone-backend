@@ -24,4 +24,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
         return findByNickname(nickname)
                 .orElseThrow(() -> DataNotFoundException.from("사용자", nickname));
     }
+
+    boolean existsByNickname(String nickname);
 }

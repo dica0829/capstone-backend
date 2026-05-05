@@ -49,4 +49,10 @@ public class User {
     public List<GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority(role.name()));
     }
+
+
+    public void updateProfile(String nickname, String department) {
+        this.nickname = nickname;
+        this.department = department;
+    }
 }

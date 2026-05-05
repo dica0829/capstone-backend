@@ -11,4 +11,6 @@ public interface NotificationRepository extends JpaRepository<ZoopickNotificatio
     List<ZoopickNotification> findByUserIdOrderByCreatedAtDesc(Long userId);
 
     List<ZoopickNotification> findByUserIdAndReadAtIsNullOrderByCreatedAtDesc(Long userId);
+
+    long countByUserIdAndReadAtIsNull(Long userId);
 }

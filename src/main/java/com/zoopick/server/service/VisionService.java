@@ -3,9 +3,13 @@ package com.zoopick.server.service;
 import com.zoopick.server.config.FastApiProperties;
 import com.zoopick.server.dto.vision.VisionAnalyzeRequest;
 import com.zoopick.server.dto.vision.VisionAnalyzeResponse;
+import com.zoopick.server.entity.Item;
 import com.zoopick.server.exception.BadRequestException;
 import com.zoopick.server.exception.DataNotFoundException;
+import com.zoopick.server.repository.ItemRepository;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
@@ -14,8 +18,12 @@ import org.springframework.web.client.RestClient;
 public class VisionService {
     private final RestClient fastApiRestClient;
     private final FastApiProperties fastApiProperties;
+    private final ItemRepository itemRepository;
 
-    public VisionAnalyzeResponse analyzeImage(VisionAnalyzeRequest request) {
+    @Async
+    public void analyzeImage(Long itemId) {
+        Item item = itemRepository.findById(itemId).orElseThrow(() -> new EntityNotFoundException("아이템을 찾을 수 없습니다."));
+        VisionAnalyzeRequest request = new VisionAnalyzeRequest(item.getImageUrl());
         String imageUrl = request.getImageUrl();
         if (imageUrl == null || imageUrl.isBlank()) {
             throw new BadRequestException("이미지 URL이 올바르지 않습니다.", "imageUrl is null or blank");
@@ -31,7 +39,10 @@ public class VisionService {
             if (response == null) {
                 throw new DataNotFoundException("분석 결과", imageUrl);
             }
-            return response;
+            item.setCategory(response.getCategory());
+            item.setColor(response.getColor());
+            item.setEmbedding(response.getEmbedding());
+            itemRepository.save(item);
         } catch (BadRequestException | DataNotFoundException e) {
             throw e;
         } catch (Exception e) {

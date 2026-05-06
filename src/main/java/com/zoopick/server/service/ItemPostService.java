@@ -1,8 +1,6 @@
 package com.zoopick.server.service;
 
 import com.zoopick.server.dto.item.*;
-import com.zoopick.server.dto.vision.VisionAnalyzeRequest;
-import com.zoopick.server.dto.vision.VisionAnalyzeResponse;
 import com.zoopick.server.entity.*;
 import com.zoopick.server.mapper.ItemPostMapper;
 import com.zoopick.server.repository.BuildingRepository;
@@ -33,14 +31,13 @@ public class ItemPostService {
     public CreateItemPostResult createItemPost(long userId, CreateItemPostRequest request) {
         User user = userRepository.findByIdOrThrow(userId);
         Building building = buildingRepository.findByIdOrThrow(request.getBuildingId());
-        VisionAnalyzeResponse visionAnalyzeResponse = visionService.analyzeImage(new VisionAnalyzeRequest(request.getImageUrl()));
         Item item = Item.builder()
                 .reporter(user)
                 .type(request.getType())
                 .status(ItemStatus.REPORTED)
-                .category(visionAnalyzeResponse.getCategory())
-                .color(visionAnalyzeResponse.getColor())
-                .embedding(visionAnalyzeResponse.getEmbedding())
+                .category(null)
+                .color(null)
+                .embedding(null)
                 .reportedBuilding(building)
                 .locationName(request.getDetailAddress())
                 .imageUrl(request.getImageUrl())
@@ -48,7 +45,7 @@ public class ItemPostService {
                 .build();
 
         Item savedItem = itemRepository.save(item);
-
+        visionService.analyzeImage(item.getId());
 
         ItemPost itemPost = ItemPost.builder()
                 .title(request.getTitle())

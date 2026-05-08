@@ -12,7 +12,8 @@ import lombok.Setter;
 @AllArgsConstructor
 public class CreateItemPostResult {
     @NotBlank
-    private long itemId;
+    @JsonProperty("item_post_id")
+    private long itemPostId;
     @NotBlank
     @JsonProperty("item_status")
     private ItemStatus itemStatus;

@@ -23,6 +23,7 @@ public class ItemPostRecord {
     private ItemType type;
     private ItemStatus status;
     private ItemCategory category;
+    private String name;
     private ItemColor color;
     @JsonProperty("image_url")
     private String imageUrl;

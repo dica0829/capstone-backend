@@ -25,6 +25,7 @@ public class ZoopickNotification {
     private User user;
 
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(name = "type", nullable = false)
     private NotificationType type;
 

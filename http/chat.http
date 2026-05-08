@@ -28,3 +28,12 @@ Authorization: Bearer {{accessToken}}
 ### 3. 채팅방 메시지 조회
 GET {{baseUrl}}/api/chat-rooms/{{roomId}}/messages
 Authorization: Bearer {{accessToken}}
+
+### 4. 채팅방 종료
+PATCH {{baseUrl}}/api/chat-rooms/{{roomId}}/close
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+{
+  "reason": "RETURNED"
+}

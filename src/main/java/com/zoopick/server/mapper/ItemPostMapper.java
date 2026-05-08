@@ -14,6 +14,7 @@ public class ItemPostMapper {
         return ItemPostRecord.builder()
                 .id(itemPost.getId())
                 .title(itemPost.getTitle())
+                .name(itemPost.getItem().getCategory().getDisplayName())
                 .description(itemPost.getDescription())
                 .type(itemPost.getItem().getType())
                 .status(itemPost.getItem().getStatus())

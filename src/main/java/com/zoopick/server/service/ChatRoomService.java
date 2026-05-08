@@ -38,13 +38,18 @@ public class ChatRoomService {
         Item item = itemRepository.findByIdOrThrow(itemId);
         User requester = userRepository.findByIdOrThrow(requesterId);
         User counterpart = userRepository.findByIdOrThrow(createChatRoomRequest.getCounterpartId());
+
+        Optional<ChatRoom> existingChatRoom = chatRoomRepository.findByParticipantIdAndItemIdIs(requesterId, itemId);
+        if (existingChatRoom.isPresent())
+            return new CreateChatRoomResult(false, existingChatRoom.get().getId());
+
         ChatRoom chatRoom = ChatRoom.builder()
                 .item(item)
                 .owner(resolveOwner(item.getType(), requester, counterpart))
                 .finder(resolveFinder(item.getType(), requester, counterpart))
                 .build();
         ChatRoom savedChatRoom = chatRoomRepository.save(chatRoom);
-        return new CreateChatRoomResult(savedChatRoom.getId());
+        return new CreateChatRoomResult(true, savedChatRoom.getId());
     }
 
     /**

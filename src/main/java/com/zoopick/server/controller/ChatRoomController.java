@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.jspecify.annotations.NullMarked;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -57,6 +58,7 @@ public class ChatRoomController {
 
     @Operation(summary = "채팅방 생성", description = "게시글과 상대 사용자 정보를 기반으로 새로운 채팅방을 생성합니다.")
     @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "기존 채팅방"),
             @ApiResponse(responseCode = "201", description = "채팅방 생성 성공"),
             @ApiResponse(responseCode = "400", description = "잘못된 요청값"),
             @ApiResponse(responseCode = "401", description = "인증 필요"),
@@ -68,7 +70,8 @@ public class ChatRoomController {
             @RequestBody @Valid CreateChatRoomRequest createChatRoomRequest
     ) {
         CreateChatRoomResult result = chatRoomService.createChatRoom(principal.id(), createChatRoomRequest);
-        return ResponseEntity.status(HttpStatus.CREATED).body(CommonResponse.success(result));
+        HttpStatusCode httpStatue = result.isCreated() ? HttpStatus.CREATED : HttpStatus.OK;
+        return ResponseEntity.status(httpStatue).body(CommonResponse.success(result));
     }
 
     @Operation(summary = "채팅방 단건 조회", description = "채팅방 ID로 채팅방 상세 정보를 조회합니다.")

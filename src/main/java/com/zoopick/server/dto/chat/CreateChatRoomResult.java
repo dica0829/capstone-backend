@@ -12,6 +12,8 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 public class CreateChatRoomResult {
+    private boolean created;
+
     @NotBlank
     @JsonProperty("room_id")
     private long roomId;

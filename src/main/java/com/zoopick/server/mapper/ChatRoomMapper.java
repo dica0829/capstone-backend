@@ -13,6 +13,7 @@ public class ChatRoomMapper {
     public ChatRoomRecord toChatRoomRecord(ChatRoom chatRoom) {
         return ChatRoomRecord.builder()
                 .roomId(chatRoom.getId())
+                .status(chatRoom.getStatus())
                 .ownerNickname(chatRoom.getOwner().getNickname())
                 .finderNickname(chatRoom.getFinder().getNickname())
                 .itemName(resolveItemDetail(chatRoom.getItem()))

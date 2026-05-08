@@ -1505,12 +1505,19 @@ ALTER TABLE ONLY zoopick.users
 ALTER TABLE ONLY zoopick.users
     ADD CONSTRAINT users_school_email_key UNIQUE (school_email);
 
+--
+-- Name: idx_items_embedding_hnsw; Type: INDEX; Schema: zoopick; Owner: postgres
+--
+
+CREATE INDEX idx_items_embedding_hnsw ON zoopick.items USING hnsw (embedding vector_cosine_ops);
+
+
 
 --
--- Name: idx_items_cat_color_id; Type: INDEX; Schema: zoopick; Owner: postgres
+-- Name: idx_items_filtering; Type: INDEX; Schema: zoopick; Owner: postgres
 --
 
-CREATE INDEX idx_items_cat_color_id ON zoopick.items (category, color, id);
+CREATE INDEX idx_items_filtering ON zoopick.items (category, color);
 
 
 --

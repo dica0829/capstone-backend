@@ -16,13 +16,20 @@ import java.util.List;
 public interface ItemMatchRepository extends JpaRepository<ItemMatch, Long> {
 
     @Query(value = """
-    SELECT i.id as itemId, (1 - (i.embedding <=> CAST(:embedding AS vector))) as score
-    FROM zoopick.items i
-    WHERE i.type <> CAST(:excludeType AS item_type)
-      AND i.returned_at IS NULL
-      AND i.category = CAST(:category AS item_category)
-      AND i.color = CAST(:color AS item_color)
-      AND (1 - (i.embedding <=> CAST(:embedding AS vector))) >= :threshold
+    SELECT *
+    FROM (
+        SELECT
+            i.id,
+            1 - (i.embedding <=> CAST(:embedding AS vector)) AS score
+        FROM zoopick.items i
+        WHERE i.category = CAST(:category AS item_category)
+          AND i.color = CAST(:color AS item_color)
+          AND i.type <> CAST(:excludeType AS item_type)
+          AND i.returned_at IS NULL
+        ORDER BY i.embedding <=> CAST(:embedding AS vector)
+        LIMIT 100
+    ) t
+    WHERE t.score >= :threshold;
     """, nativeQuery = true)
     List<SimilarItemResult> findSimilarItems(@Param("embedding") Vector embedding,
                                              @Param("excludeType") String excludeType,

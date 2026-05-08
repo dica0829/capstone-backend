@@ -45,4 +45,11 @@ public class ItemMatch {
     @Column(name = "updated_at")
     @Builder.Default
     private LocalDateTime updatedAt = LocalDateTime.now();
+
+    @PrePersist
+    @PreUpdate
+    public void formatScore() {
+        // 저장 및 수정 직전에 0.85714...를 0.857로 변환
+        this.score = Math.round(this.score * 1000f) / 1000f;
+    }
 }

@@ -124,4 +124,25 @@ public class ChatRoomController {
         chatRoomService.sendMessage(principal.id(), roomId, sendMessageRequest.getMessage());
         return ResponseEntity.ok(CommonResponse.success("done"));
     }
+
+    @PatchMapping("/{roomId}/close")
+    public ResponseEntity<CommonResponse<String>> closeChatRoom(
+            @AuthenticationPrincipal UserPrincipal principal,
+            @Parameter(description = "메시지를 전송할 채팅방 ID", example = "1")
+            @PathVariable long roomId,
+            @RequestBody @Valid CloseChatRoomRequest closeChatRoomRequest
+    ) {
+        chatRoomService.closeChatRoom(principal.id(), roomId, closeChatRoomRequest.getReason());
+        return ResponseEntity.ok(CommonResponse.success("성공"));
+    }
+
+    @PatchMapping("/{roomId}/reopen")
+    public ResponseEntity<CommonResponse<String>> reopenChatRoom(
+            @AuthenticationPrincipal UserPrincipal principal,
+            @Parameter(description = "메시지를 전송할 채팅방 ID", example = "1")
+            @PathVariable long roomId
+    ) {
+        chatRoomService.reopenChatRoom(principal.id(), roomId);
+        return ResponseEntity.ok(CommonResponse.success("성공"));
+    }
 }

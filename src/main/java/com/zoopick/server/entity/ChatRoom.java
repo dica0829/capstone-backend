@@ -4,8 +4,10 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
+import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
 
@@ -38,6 +40,15 @@ public class ChatRoom {
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "finder_id", nullable = false)
     private User finder;
+
+    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(name = "status", nullable = false)
+    @Builder.Default
+    private ChatRoomStatus status = ChatRoomStatus.OPEN;
+
+    @Column(name = "resolved_at")
+    private LocalDateTime resolvedAt;
 
     @NotNull
     @ColumnDefault("now()")

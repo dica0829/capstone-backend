@@ -16,8 +16,10 @@ import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -157,5 +159,36 @@ public class ChatRoomService {
         if (finder.getId().equals(sender.getId()))
             return owner;
         return finder;
+    }
+
+    public void closeChatRoom(long userId, long chatRoomId, ChatRoomCloseReason reason) {
+        ChatRoom chatRoom = chatRoomRepository.findByIdOrThrow(chatRoomId);
+        verifyUserInChatRoom(chatRoom, userId);
+        if (chatRoom.getStatus() != ChatRoomStatus.OPEN)
+            throw new BadRequestException("이미 닫힌 채팅방입니다.", chatRoomId + " is already closed.");
+
+        chatRoom.setStatus(reason.toChatRoomStatus());
+        chatRoom.setResolvedAt(LocalDateTime.now());
+        chatRoomRepository.save(chatRoom);
+
+        // TODO : send notification to counterpart
+    }
+
+    public void reopenChatRoom(long userId, long chatRoomId) {
+        ChatRoom chatRoom = chatRoomRepository.findByIdOrThrow(chatRoomId);
+        verifyUserInChatRoom(chatRoom, userId);
+        if (chatRoom.getStatus() == ChatRoomStatus.OPEN)
+            throw new BadRequestException("이미 열린 채팅방입니다.", chatRoomId + " is already opened.");
+
+        chatRoom.setStatus(ChatRoomStatus.OPEN);
+        chatRoom.setResolvedAt(null);
+        chatRoomRepository.save(chatRoom);
+
+        // TODO : send notification to counterpart
+    }
+
+    private void verifyUserInChatRoom(ChatRoom chatRoom, long userId) {
+        if (!Objects.equals(chatRoom.getOwner().getId(), userId) && !Objects.equals(chatRoom.getFinder().getId(), userId))
+            throw new BadRequestException("사용자가 포함되지 않은 채팅방입니다.", userId + " is not in chat room " + chatRoom.getId());
     }
 }

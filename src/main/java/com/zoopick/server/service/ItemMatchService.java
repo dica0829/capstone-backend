@@ -162,7 +162,7 @@ public class ItemMatchService {
             notificationService.send(lostItem.getReporter(), new SendNotificationCommand(
                     "분실물 발견",
                     "회원님이 등록한 %s와 유사한 물건이 %s에서 발견됐어요.".formatted(title, location),
-                    new MatchFoundPayload(lostItem.getId(), match.getId(), match.getScore())
+                    MatchFoundPayload.of(lostItem, match)
             ));
             return true;
         } catch (FirebaseMessagingException e) {

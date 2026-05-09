@@ -57,6 +57,7 @@ public class VisionService {
             item.setCategory(response.getCategory());
             item.setColor(response.getColor());
             item.setEmbedding(response.getEmbedding());
+            itemRepository.save(item);
             itemMatchService.createMatch(item.getId());
         } catch (BadRequestException | DataNotFoundException e) {
             throw e;

@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 import org.springframework.web.client.RestClient;
@@ -33,6 +34,7 @@ public class VisionService {
         analyzeImage(event.itemId());
     }
 
+    @Transactional
     public void analyzeImage(Long itemId) {
         log.info("전달된 아이템 ID: {}", itemId);
         Item item = itemRepository.findById(itemId).orElseThrow(() -> new EntityNotFoundException("아이템을 찾을 수 없습니다."));

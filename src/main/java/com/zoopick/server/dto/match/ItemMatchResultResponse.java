@@ -1,4 +1,4 @@
-package com.zoopick.server.dto.item;
+package com.zoopick.server.dto.match;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.zoopick.server.entity.MatchStatus;

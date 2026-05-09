@@ -23,6 +23,7 @@ public class MatchFoundPayload implements NotificationPayload {
     @JsonProperty("match_id")
     @Schema(description = "매칭 ID", example = "55")
     private final long matchId;
+    @JsonProperty("score")
     @Schema(description = "매칭 점수", example = "0.87")
     private final float score;
 

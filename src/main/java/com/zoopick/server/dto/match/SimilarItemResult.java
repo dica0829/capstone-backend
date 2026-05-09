@@ -1,4 +1,4 @@
-package com.zoopick.server.dto.item;
+package com.zoopick.server.dto.match;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

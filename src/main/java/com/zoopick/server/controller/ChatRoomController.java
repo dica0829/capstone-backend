@@ -134,7 +134,7 @@ public class ChatRoomController {
             @PathVariable long roomId,
             @RequestBody @Valid SendMessageRequest sendMessageRequest
     ) throws FirebaseMessagingException {
-        chatRoomService.sendMessage(principal.id(), roomId, sendMessageRequest.getMessage());
+        chatRoomService.sendMessageWithNotification(principal.id(), roomId, sendMessageRequest.getMessage());
         return ResponseEntity.ok(CommonResponse.success("done"));
     }
 

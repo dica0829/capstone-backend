@@ -40,6 +40,10 @@ public class SecurityConfig {
                 // Vision 및 CCTV API 허용 (테스트용)
                 .requestMatchers("/api/vision/**", "/api/cctv/**", "/api/internal/**").permitAll()
 
+                // IoT 디바이스(아두이노) 전용 엔드포인트 허용
+                .requestMatchers(HttpMethod.GET, "/api/lockers/*/pending").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/lockers/*/commands/*/ack").permitAll()
+
                 .requestMatchers("/api/metadata/**").permitAll()
                 
                 // [수정 포인트] 실제 테스트 주소인 /api/auth/... 계열을 모두 허용 목록에 추가
@@ -50,6 +54,9 @@ public class SecurityConfig {
 
                 // 2. 관리자 및 기타
                 .requestMatchers("/admin/**").hasRole("ADMIN")
+
+                // 웹 소켓은 AuthHandshakeInterceptor에서 처리
+                .requestMatchers("/ws/**").permitAll()
 
                 // 3. 그 외 모든 API (로그아웃, 내 정보 조회 등)는 반드시 '인증' 필요
                 .anyRequest().authenticated());

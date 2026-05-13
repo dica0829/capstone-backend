@@ -60,3 +60,5 @@ pg_dump -h localhost -U postgres -f zoopick_dump.sql -d zoopick
 Windows/Mac: Docker를 이용하거나 로컬에 설치된 Redis 서버를 실행해 주세요. (기본 포트: 6379)
 
 정상 실행 확인 명령어: redis-cli ping 입력 시 PONG 응답이 와야 합니다
+
+## 항상 데이터베이스 최신화 할 것 

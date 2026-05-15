@@ -25,15 +25,12 @@ public class CreateCctvMatchEventListner {
         Room room = event.cctvDetection().getCctvVideo().getRoom();
         Item item = event.item();
         CctvDetectionMatch cctvDetectionMatch = event.cctvDetectionMatch();
-        CctvDetection cctvDetection = event.cctvDetection();
         String title = event.itemPost().getTitle();
 
         notificationService.send(event.item().getReporter(), new SendNotificationCommand(
                 "도난 의심",
-                "회원님이 등록한 %s와 유사한 물건이 %s에서 발견됐어요.".formatted(title, room.getName()),
-                CctvFoundPayload.of(item, cctvDetectionMatch)
-            )
-        );
+                "회원님이 등록한 %s와 유사한 물건이 %s에서 도난이 의심돼요.".formatted(title, room.getName()),
+                CctvFoundPayload.of(item, cctvDetectionMatch)));
         log.info("FCM 전송 성공 matchId: {}", cctvDetectionMatch.getId());
     }
 }

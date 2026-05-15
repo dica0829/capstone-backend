@@ -81,7 +81,7 @@ public class ItemMatchService {
                         .status(MatchStatus.CANDIDATE)
                         .build());
                 log.info("매칭된 아이템 ID: {}", foundItemInDb.getId());
-                eventPublisher.publishEvent(new CreateMatchEvent(savedMatch.getId(), lostItem.getId(), foundItem.getId()));
+                eventPublisher.publishEvent(new CreateMatchEvent(savedMatch, lostItem, foundItem));
             }
         }
         log.info("매칭 종료 ID: {}", targetItem.getId());

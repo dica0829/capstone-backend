@@ -6,6 +6,7 @@ import com.zoopick.server.dto.match.SaveCctvDetectionEvent;
 import com.zoopick.server.entity.*;
 import com.zoopick.server.exception.BadRequestException;
 import com.zoopick.server.exception.DataNotFoundException;
+import com.zoopick.server.exception.ForbiddenException;
 import com.zoopick.server.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -297,7 +298,7 @@ public class CctvService {
     }
 
     public GetDetectionsMeResponse getDetectionsMe(Long userId) {
-        List<MatchedLostItems> matchedLostItems = cctvDetectionMatchRepository.findCctvDetectionByUserId(userId);
+        List<MatchedLostItems> matchedLostItems = cctvDetectionRepository.findCctvDetectionByUserId(userId);
         return new GetDetectionsMeResponse(matchedLostItems);
     }
 
@@ -311,5 +312,29 @@ public class CctvService {
         );
 
         return new GetDetectionByItemIdResponse(cctvDetectionDetail);
+    }
+
+    @Transactional
+    public void reviewMatch(Long userId, Long detectionId, CctvDetectionReviewRequest request) {
+        CctvDetection detection = cctvDetectionRepository.findById(detectionId)
+                .orElseThrow(() -> DataNotFoundException.from("CCTV 탐지 정보", detectionId));
+        if (detection.getReviewStatus() != DetectionReviewStatus.PENDING) {
+            log.info("[CCTV] 이미 처리된 Detection입니다. DetectionId={}, Status={}", detectionId, detection.getReviewStatus());
+            return;
+        }
+        boolean existsMatch = cctvDetectionMatchRepository.existsByCctvDetectionIdAndItemReporterId(detectionId, userId);
+        if (!existsMatch) {
+            throw new ForbiddenException("Detection에 대한 접근 권한이 없습니다.");
+        }
+        CctvDetectionMatch cctvDetectionMatch = cctvDetectionMatchRepository.findByCctvDetectionIdAndItemReporterId(detectionId, userId);
+        if (request.getReviewStatus() == DetectionReviewStatus.CONFIRMED_SELF) {
+            Item lostItem = cctvDetectionMatch.getItem();
+            lostItem.theftSuspected(LocalDateTime.now());
+            log.info("[CCTV] 도난 상태 저장 완료: itemId={}", lostItem.getId());
+        }
+
+        detection.updateDetectionReviewStatus(request.getReviewStatus());
+
+        log.info("[CCTV] 리뷰 상태 변경: DetectionId={}, Status={}", detectionId, request.getReviewStatus());
     }
 }

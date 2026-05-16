@@ -142,6 +142,32 @@ public class CctvController {
     }
 
     @Operation(
+            summary = "CCTV 매칭 결과 검토(확정/거절)",
+            description = """
+        사용자가 본인의 분실물과 매칭된 CCTV 탐지 결과를 검토하고 상태를 업데이트합니다.
+        
+        상태 값:
+        - CONFIRMED_SELF: 내 물건이 맞음 (도난 의심)
+        - REJECTED_SELF: 내 물건이 아님 (도난 아님)
+        """
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "검토 결과 반영 성공"),
+            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
+            @ApiResponse(responseCode = "403", description = "해당 탐지 결과에 대한 접근 권한 없음"),
+            @ApiResponse(responseCode = "404", description = "탐지 정보를 찾을 수 없음")
+    })
+    @PutMapping("/detections/{detectionId}/review")
+    public ResponseEntity<CommonResponse<?>> reviewMatch(
+            @AuthenticationPrincipal UserPrincipal userPrincipal,
+            @Parameter(description = "검토할 탐지 결과 ID") @PathVariable Long detectionId,
+            @Valid @RequestBody CctvDetectionReviewRequest request
+    ) {
+        cctvService.reviewMatch(userPrincipal.id(), detectionId, request);
+        return ResponseEntity.ok(CommonResponse.success(null));
+    }
+
+    @Operation(
             summary = "CCTV 업로드",
             description = """
             관리자가 CCTV를 업로드합니다.

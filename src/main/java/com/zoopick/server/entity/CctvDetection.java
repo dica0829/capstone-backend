@@ -64,4 +64,9 @@ public class CctvDetection {
     @Column(name = "created_at", nullable = false, updatable = false)
     @CreatedDate
     private LocalDateTime createdAt;
+
+    public void updateDetectionReviewStatus(DetectionReviewStatus reviewStatus) {
+        this.reviewStatus = reviewStatus;
+        this.reviewedAt = LocalDateTime.now(); // 리뷰 시점 기록
+    }
 }

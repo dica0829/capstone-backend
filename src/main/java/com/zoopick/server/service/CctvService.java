@@ -259,8 +259,7 @@ public class CctvService {
                         entity.getCctvVideo().getId(),
                         entity.getDetectedAt(),
                         entity.getDetectedCategory(),
-                        entity.getDetectedColor(),
-                        entity.getReviewStatus()
+                        entity.getDetectedColor()
                 ))
                 .toList();
     }
@@ -279,8 +278,6 @@ public class CctvService {
                 entity.getEmbedding(),
                 entity.getItemSnapshotUrl(),
                 entity.getMomentSnapshotUrl(),
-                entity.getReviewStatus(),
-                entity.getReviewedAt(),
                 entity.getCreatedAt()
         );
     }
@@ -298,12 +295,12 @@ public class CctvService {
     }
 
     public GetDetectionsMeResponse getDetectionsMe(Long userId) {
-        List<MatchedLostItems> matchedLostItems = cctvDetectionRepository.findCctvDetectionByUserId(userId);
+        List<MatchedLostItems> matchedLostItems = cctvDetectionRepository.findCctvDetectionByUserId(userId, DetectionReviewStatus.PENDING);
         return new GetDetectionsMeResponse(matchedLostItems);
     }
 
     public GetDetectionByItemIdResponse getDetectionsMeByItemId(Long userId, Long itemId) {
-        List<CctvDetectionDetail> cctvDetectionDetail = cctvDetectionRepository.findCctvDetectionDetail(userId, itemId);
+        List<CctvDetectionDetail> cctvDetectionDetail = cctvDetectionRepository.findCctvDetectionDetail(userId, itemId, DetectionReviewStatus.PENDING);
 
         cctvDetectionDetail.forEach(d ->
                 d.setScore(BigDecimal.valueOf(d.getScore())
@@ -315,26 +312,31 @@ public class CctvService {
     }
 
     @Transactional
-    public void reviewMatch(Long userId, Long detectionId, CctvDetectionReviewRequest request) {
-        CctvDetection detection = cctvDetectionRepository.findById(detectionId)
-                .orElseThrow(() -> DataNotFoundException.from("CCTV 탐지 정보", detectionId));
-        if (detection.getReviewStatus() != DetectionReviewStatus.PENDING) {
-            log.info("[CCTV] 이미 처리된 Detection입니다. DetectionId={}, Status={}", detectionId, detection.getReviewStatus());
+    public void reviewMatch(Long userId, Long matchId, CctvDetectionReviewRequest request) {
+        CctvDetectionMatch cctvDetectionMatch = cctvDetectionMatchRepository.findById(matchId)
+                .orElseThrow(() -> DataNotFoundException.from("CCTV 매칭", matchId));
+        if (!cctvDetectionMatch.getItem().getReporter().getId().equals(userId)) {
+            log.warn("[CCTV] 권한 없는 사용자의 리뷰 시도: userId={}, matchId={}", userId, matchId);
+            throw new ForbiddenException("해당 매칭 정보를 수정할 권한이 없습니다.");
+        }
+        if (cctvDetectionMatch.getReviewStatus() != DetectionReviewStatus.PENDING) {
+            log.info("[CCTV] 이미 처리된 Detection입니다. matchId={}, Status={}", matchId, cctvDetectionMatch.getReviewStatus());
             return;
         }
-        boolean existsMatch = cctvDetectionMatchRepository.existsByCctvDetectionIdAndItemReporterId(detectionId, userId);
-        if (!existsMatch) {
-            throw new ForbiddenException("Detection에 대한 접근 권한이 없습니다.");
-        }
-        CctvDetectionMatch cctvDetectionMatch = cctvDetectionMatchRepository.findByCctvDetectionIdAndItemReporterId(detectionId, userId);
         if (request.getReviewStatus() == DetectionReviewStatus.CONFIRMED_SELF) {
             Item lostItem = cctvDetectionMatch.getItem();
             lostItem.theftSuspected(LocalDateTime.now());
+            cctvDetectionMatchRepository.rejectOtherPendingMatches( // 나머지 reject 처리
+                    lostItem.getId(),
+                    matchId,
+                    DetectionReviewStatus.REJECTED_SELF,
+                    DetectionReviewStatus.PENDING,
+                    LocalDateTime.now());
             log.info("[CCTV] 도난 상태 저장 완료: itemId={}", lostItem.getId());
         }
 
-        detection.updateDetectionReviewStatus(request.getReviewStatus());
+        cctvDetectionMatch.updateDetectionReviewStatus(request.getReviewStatus());
 
-        log.info("[CCTV] 리뷰 상태 변경: DetectionId={}, Status={}", detectionId, request.getReviewStatus());
+        log.info("[CCTV] 리뷰 상태 변경: MatchId={}, Status={}", matchId, request.getReviewStatus());
     }
 }

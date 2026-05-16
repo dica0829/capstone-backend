@@ -12,8 +12,8 @@ import java.time.LocalDateTime;
 @Setter
 @AllArgsConstructor
 public class CctvDetectionDetail {
-    @JsonProperty("detection_id")
-    private Long detectionId;
+    @JsonProperty("match_id")
+    private Long matchId;
 
     private double score;
 

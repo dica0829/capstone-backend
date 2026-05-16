@@ -3,9 +3,11 @@ package com.zoopick.server.repository;
 import com.zoopick.server.dto.match.SimilarItemProjection;
 import com.zoopick.server.entity.CctvDetection;
 import com.zoopick.server.entity.CctvDetectionMatch;
+import com.zoopick.server.entity.DetectionReviewStatus;
 import com.zoopick.server.entity.Item;
 import org.springframework.data.domain.Vector;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -64,7 +66,20 @@ public interface CctvDetectionMatchRepository extends JpaRepository<CctvDetectio
     // 중복 체크
     boolean existsByCctvDetectionAndItem(CctvDetection detection, Item lostItem);
 
-    boolean existsByCctvDetectionIdAndItemReporterId(Long detectionId, Long itemReporterId);
-
-    CctvDetectionMatch findByCctvDetectionIdAndItemReporterId(Long detectionId, Long itemReporterId);
+    @Modifying
+    @Query("""
+    UPDATE CctvDetectionMatch m 
+    SET m.reviewStatus = :rejectedStatus,
+        m.reviewedAt = :now
+    WHERE m.item.id = :itemId 
+      AND m.id != :confirmedMatchId 
+      AND m.reviewStatus = :pendingStatus
+""")
+    void rejectOtherPendingMatches(
+            @Param("itemId") Long itemId,
+            @Param("confirmedMatchId") Long confirmedMatchId,
+            @Param("rejectedStatus") DetectionReviewStatus rejectedStatus,
+            @Param("pendingStatus") DetectionReviewStatus pendingStatus,
+            @Param("now") LocalDateTime now
+    );
 }

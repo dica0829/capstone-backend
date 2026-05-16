@@ -157,13 +157,13 @@ public class CctvController {
             @ApiResponse(responseCode = "403", description = "해당 탐지 결과에 대한 접근 권한 없음"),
             @ApiResponse(responseCode = "404", description = "탐지 정보를 찾을 수 없음")
     })
-    @PutMapping("/detections/{detectionId}/review")
+    @PutMapping("/detections/{matchId}/review")
     public ResponseEntity<CommonResponse<?>> reviewMatch(
-            @AuthenticationPrincipal UserPrincipal userPrincipal,
-            @Parameter(description = "검토할 탐지 결과 ID") @PathVariable Long detectionId,
+            @AuthenticationPrincipal UserPrincipal principal,
+            @Parameter(description = "리뷰할 매칭 ID") @PathVariable Long matchId,
             @Valid @RequestBody CctvDetectionReviewRequest request
     ) {
-        cctvService.reviewMatch(userPrincipal.id(), detectionId, request);
+        cctvService.reviewMatch(principal.id(), matchId, request);
         return ResponseEntity.ok(CommonResponse.success(null));
     }
 

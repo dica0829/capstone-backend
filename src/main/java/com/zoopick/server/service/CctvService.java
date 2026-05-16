@@ -18,6 +18,8 @@ import org.springframework.web.client.RestClient;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -297,5 +299,17 @@ public class CctvService {
     public GetDetectionsMeResponse getDetectionsMe(Long userId) {
         List<MatchedLostItems> matchedLostItems = cctvDetectionMatchRepository.findCctvDetectionByUserId(userId);
         return new GetDetectionsMeResponse(matchedLostItems);
+    }
+
+    public GetDetectionByItemIdResponse getDetectionsMeByItemId(Long userId, Long itemId) {
+        List<CctvDetectionDetail> cctvDetectionDetail = cctvDetectionRepository.findCctvDetectionDetail(userId, itemId);
+
+        cctvDetectionDetail.forEach(d ->
+                d.setScore(BigDecimal.valueOf(d.getScore())
+                        .setScale(3, RoundingMode.HALF_UP)
+                        .doubleValue())
+        );
+
+        return new GetDetectionByItemIdResponse(cctvDetectionDetail);
     }
 }

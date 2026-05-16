@@ -2,6 +2,7 @@ package com.zoopick.server.controller;
 
 import com.zoopick.server.dto.CommonResponse;
 import com.zoopick.server.dto.cctv.*;
+import com.zoopick.server.dto.cctv.GetDetectionByItemIdResponse;
 import com.zoopick.server.security.UserPrincipal;
 import com.zoopick.server.service.CctvService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -113,25 +114,32 @@ public class CctvController {
     }
 
     @Operation(
-            summary = "나의 CCTV 분실물 매칭 목록 조회",
+            summary = "나의 CCTV 매칭 현황 및 상세 조회",
             description = """
-        로그인한 유저가 등록한 분실물 중 CCTV AI 분석을 통해 매칭된 결과 목록을 조회합니다.
-        매칭 횟수가 1회 이상인 아이템만 반환됩니다.
+        유저가 등록한 분실물들과 CCTV AI 분석으로 매칭된 결과들을 조회합니다.
+        
+        1. 일반 호출: CCTV 매칭 이력이 있는 나의 '분실물 목록'을 조회합니다.
+        2. itemId 호출: 특정 분실물에 대해 매칭된 'CCTV 상세 탐지 정보(시간, 장소, 스코어 등)' 목록을 조회합니다.
         """
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "조회 성공"),
             @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자 (토큰 만료 또는 없음)"),
-            @ApiResponse(responseCode = "404", description = "유저 정보를 찾을 수 없음")
+            @ApiResponse(responseCode = "404", description = "유저 또는 해당 아이템 정보를 찾을 수 없음")
     })
     @GetMapping("/detections/me")
-    public ResponseEntity<CommonResponse<GetDetectionsMeResponse>> getDetectionsMe(
+    public ResponseEntity<CommonResponse<?>> getDetectionsMe(
             @Parameter(description = "조회할 유저")
-            @AuthenticationPrincipal UserPrincipal principal) {
-        GetDetectionsMeResponse response = cctvService.getDetectionsMe(1L);
+            @AuthenticationPrincipal UserPrincipal principal,
+            @RequestParam(value = "itemId", required = false) Long itemId) {
+        if (itemId == null) {
+            GetDetectionsMeResponse response = cctvService.getDetectionsMe(principal.id());
+            return ResponseEntity.ok(CommonResponse.success(response));
+        }
+
+        GetDetectionByItemIdResponse response = cctvService.getDetectionsMeByItemId(principal.id(), itemId);
         return ResponseEntity.ok(CommonResponse.success(response));
     }
-
 
     @Operation(
             summary = "CCTV 업로드",

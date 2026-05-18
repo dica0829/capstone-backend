@@ -33,7 +33,7 @@ public interface ItemMatchRepository extends JpaRepository<ItemMatch, Long> {
         WHERE i.type <> CAST(:excludeType AS item_type)
           AND i.reporter_id <> :reporterId
           AND i.returned_at IS NULL
-          AND i.status IN ('IN_LOCKER', 'REPORTED')
+          AND i.status IN ('REPORTED')
           AND i.category = CAST(:category AS item_category)
         ORDER BY i.embedding <=> CAST(:embedding AS vector)
         LIMIT 100

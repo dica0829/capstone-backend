@@ -1,7 +1,7 @@
 package com.zoopick.server.dto.match;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.zoopick.server.entity.MatchManualType;
+import com.zoopick.server.entity.MatchType;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
@@ -17,10 +17,7 @@ public class MatchConfirmResponse {
 
     @JsonProperty("match_type")
     @NotNull
-    MatchManualType matchType;
-
-    @JsonProperty("locker_id")
-    Long lockerId;
+    MatchType matchType;
 
     @JsonProperty("found_item_id")
     @NotNull

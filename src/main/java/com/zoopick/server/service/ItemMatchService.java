@@ -103,8 +103,6 @@ public class ItemMatchService {
 
         validateMatchStatus(itemMatch);
 
-        boolean wasInLocker = foundItem.getStatus() == ItemStatus.IN_LOCKER;
-
         lostItem.setStatus(ItemStatus.MATCHED);
         foundItem.setStatus(ItemStatus.MATCHED);
         itemMatch.setStatus(MatchStatus.CONFIRMED);
@@ -117,18 +115,9 @@ public class ItemMatchService {
                 .foundItemId(foundItem.getId())
                 .counterpartId(foundItem.getReporter().getId());
 
-        if (wasInLocker) {
-            Locker locker = lockerRepository.findLockerByCurrentItem(foundItem);
-            log.info("매칭 LOCKER {} <-> {}", lostItem.getId(), foundItem.getId());
-            return responseBuilder
-                    .matchType(MatchManualType.LOCKER)
-                    .lockerId(locker.getId())
-                    .build();
-        }
-
         log.info("매칭 CHAT {} <-> {}", lostItem.getId(), foundItem.getId());
         return responseBuilder
-                .matchType(MatchManualType.CHAT)
+                .matchType(MatchType.CHAT)
                 .build();
     }
 
@@ -182,14 +171,14 @@ public class ItemMatchService {
             Locker locker = lockerRepository.findLockerByCurrentItem(foundItem);
             log.info("매칭 LOCKER {} <-> {}", request.getLostItemId(), request.getFoundItemId());
             return responseBuilder
-                    .matchManualType(MatchManualType.LOCKER)
+                    .matchManualType(MatchType.LOCKER)
                     .lockerId(locker.getId())
                     .build();
         }
 
         log.info("매칭 CHAT {} <-> {}", request.getLostItemId(), request.getFoundItemId());
         return responseBuilder
-                .matchManualType(MatchManualType.CHAT)
+                .matchManualType(MatchType.CHAT)
                 .build();
     }
 

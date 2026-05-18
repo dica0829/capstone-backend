@@ -1,6 +1,6 @@
 package com.zoopick.server.entity;
 
-public enum MatchManualType {
+public enum MatchType {
     LOCKER,
     CHAT;
 }

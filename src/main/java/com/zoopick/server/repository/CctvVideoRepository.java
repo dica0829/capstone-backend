@@ -12,15 +12,17 @@ import java.util.List;
 public interface CctvVideoRepository extends JpaRepository<CctvVideo, Long> {
     @Query("""
     SELECT new com.zoopick.server.dto.cctv.GetCctvVideoResponse(
-        v.id, 
-        v.room.id, 
-        v.recordedAt, 
-        v.videoUrl, 
-        p.status, 
-        v.durationSeconds, 
-        p.analyzedSeconds, 
-        p.estimatedCompletionAt, 
-        p.startedAt, 
+        v.id,
+        v.room.id,
+        v.room.name,
+        v.room.building.name,
+        v.recordedAt,
+        v.videoUrl,
+        p.status,
+        v.durationSeconds,
+        p.analyzedSeconds,
+        p.estimatedCompletionAt,
+        p.startedAt,
         p.lastUpdatedAt
     )
     FROM CctvVideo v

@@ -257,13 +257,18 @@ public class CctvService {
     @Transactional(readOnly = true)
     public List<GetAllDetectionResponse> getAllCctvDetection() {
         return cctvDetectionRepository.findAllByOrderByDetectedAtAsc().stream()
-                .map(entity -> new GetAllDetectionResponse(
-                        entity.getId(),
-                        entity.getCctvVideo().getId(),
-                        entity.getDetectedAt(),
-                        entity.getDetectedCategory(),
-                        entity.getDetectedColor()
-                ))
+                .map(entity -> {
+                    Room room = entity.getCctvVideo().getRoom();
+                    return new GetAllDetectionResponse(
+                            entity.getId(),
+                            entity.getCctvVideo().getId(),
+                            room.getName(),
+                            room.getBuilding().getName(),
+                            entity.getDetectedAt(),
+                            entity.getDetectedCategory(),
+                            entity.getDetectedColor()
+                    );
+                })
                 .toList();
     }
 
@@ -272,9 +277,12 @@ public class CctvService {
         CctvDetection entity = cctvDetectionRepository.findById(detectionId)
                 .orElseThrow(() -> DataNotFoundException.from("CCTV 물품 정보", detectionId));
 
+        Room room = entity.getCctvVideo().getRoom();
         return new GetDetectionByIdResponse(
                 entity.getId(),
                 entity.getCctvVideo().getId(),
+                room.getName(),
+                room.getBuilding().getName(),
                 entity.getDetectedAt(),
                 entity.getDetectedCategory(),
                 entity.getDetectedColor(),

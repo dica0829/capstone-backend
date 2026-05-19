@@ -15,6 +15,10 @@ public class GetCctvVideoResponse {
     private Long id;
     @JsonProperty("room_id")
     private Long roomId;
+    @JsonProperty("room_name")
+    private String roomName;
+    @JsonProperty("building_name")
+    private String buildingName;
     @JsonProperty("recorded_at")
     private LocalDateTime recordedAt;
     @JsonProperty("video_url")

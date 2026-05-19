@@ -878,6 +878,38 @@
             <div class="response-body" id="reg-body"></div>
           </div>
         </div>
+        <div class="card">
+          <div class="card-title">room_id 참고표</div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>건물 (id / code)</th>
+                  <th>room_id</th>
+                  <th>강의실명</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td rowspan="4">제5공학관 (1 / ENG5)</td><td class="mono">7</td><td class="mono">Y5420</td></tr>
+                <tr><td class="mono">8</td><td class="mono">Y5441</td></tr>
+                <tr><td class="mono">9</td><td class="mono">Y5411</td></tr>
+                <tr><td class="mono">10</td><td class="mono">Y5445</td></tr>
+                <tr><td rowspan="3">제2공학관 (2 / ENG2)</td><td class="mono">4</td><td class="mono">Y8110</td></tr>
+                <tr><td class="mono">5</td><td class="mono">Y8107</td></tr>
+                <tr><td class="mono">6</td><td class="mono">Y8114</td></tr>
+                <tr><td rowspan="3">제1공학관 (3 / ENG1)</td><td class="mono">1</td><td class="mono">Y106</td></tr>
+                <tr><td class="mono">2</td><td class="mono">Y123</td></tr>
+                <tr><td class="mono">3</td><td class="mono">Y117</td></tr>
+                <tr><td rowspan="3">함박관 (4 / HBK)</td><td class="mono">11</td><td class="mono">Y9501</td></tr>
+                <tr><td class="mono">12</td><td class="mono">Y9508</td></tr>
+                <tr><td class="mono">13</td><td class="mono">Y9515</td></tr>
+                <tr><td rowspan="3">창조예술관 (5 / ART)</td><td class="mono">14</td><td class="mono">Y2237</td></tr>
+                <tr><td class="mono">15</td><td class="mono">Y2259</td></tr>
+                <tr><td class="mono">16</td><td class="mono">Y2119</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
 
       <!-- 2. 재큐잉 -->
@@ -924,7 +956,7 @@
               <thead>
                 <tr>
                   <th>ID</th>
-                  <th>room_id</th>
+                  <th>location</th>
                   <th>status</th>
                   <th>recorded_at</th>
                   <th>duration</th>
@@ -1187,7 +1219,7 @@
         tbody.innerHTML = list.map(v => `
         <tr>
           <td class="mono">${fmt(v.id)}</td>
-          <td class="mono">${fmt(v.room_id)}</td>
+          <td class="mono">${fmt(v.building_name)} / ${fmt(v.room_name)}</td>
           <td>${statusBadge(v.status)}</td>
           <td class="mono">${fmtDt(v.recorded_at)}</td>
           <td class="mono">${fmt(v.duration_seconds)}s</td>
@@ -1234,11 +1266,15 @@
 
         sortedVideoIds.forEach(videoId => {
           const items = groups[videoId];
+          const first = items[0] ?? {};
+          const locationLabel = first.building_name || first.room_name
+            ? `${fmt(first.building_name)} / ${fmt(first.room_name)}`
+            : '—';
           const groupEl = document.createElement('div');
           groupEl.innerHTML = `
           <div class="group-header" onclick="toggleGroup(this)">
             <span class="group-video-id">Video #${videoId}</span>
-            <span class="group-count">${items.length}개 물품</span>
+            <span class="group-count">${locationLabel} · ${items.length}개 물품</span>
             <span class="group-arrow">▼</span>
           </div>
           <div class="group-body">
@@ -1249,7 +1285,6 @@
                   <th style="font-family:var(--mono);font-size:11px;color:var(--text-muted);padding:10px 14px;border-bottom:1px solid var(--border);text-align:left">detected_at</th>
                   <th style="font-family:var(--mono);font-size:11px;color:var(--text-muted);padding:10px 14px;border-bottom:1px solid var(--border);text-align:left">category</th>
                   <th style="font-family:var(--mono);font-size:11px;color:var(--text-muted);padding:10px 14px;border-bottom:1px solid var(--border);text-align:left">color</th>
-                  <th style="font-family:var(--mono);font-size:11px;color:var(--text-muted);padding:10px 14px;border-bottom:1px solid var(--border);text-align:left">review_status</th>
                   <th style="font-family:var(--mono);font-size:11px;color:var(--text-muted);padding:10px 14px;border-bottom:1px solid var(--border);text-align:left">상세</th>
                 </tr>
               </thead>
@@ -1260,7 +1295,6 @@
                     <td class="mono" style="padding:11px 14px;color:var(--text-dim)">${fmtDt(d.detected_at)}</td>
                     <td class="mono" style="padding:11px 14px;color:var(--text-dim)">${fmt(d.detected_category)}</td>
                     <td class="mono" style="padding:11px 14px;color:var(--text-dim)">${fmt(d.detected_color)}</td>
-                    <td style="padding:11px 14px">${statusBadge(d.review_status)}</td>
                     <td style="padding:11px 14px">
                       <button class="btn btn-secondary btn-sm" onclick="openDetectionModal(${d.id})">상세 조회</button>
                     </td>
@@ -1328,12 +1362,12 @@
         <div class="detail-value">${fmt(d.video_id)}</div>
       </div>
       <div class="detail-item">
-        <div class="detail-label">detected_at</div>
-        <div class="detail-value">${fmtDt(d.detected_at)}</div>
+        <div class="detail-label">location</div>
+        <div class="detail-value">${fmt(d.building_name)} / ${fmt(d.room_name)}</div>
       </div>
       <div class="detail-item">
-        <div class="detail-label">review_status</div>
-        <div class="detail-value">${statusBadge(d.review_status)}</div>
+        <div class="detail-label">detected_at</div>
+        <div class="detail-value">${fmtDt(d.detected_at)}</div>
       </div>
       <div class="detail-item">
         <div class="detail-label">detected_category</div>
@@ -1342,10 +1376,6 @@
       <div class="detail-item">
         <div class="detail-label">detected_color</div>
         <div class="detail-value">${fmt(d.detected_color)}</div>
-      </div>
-      <div class="detail-item">
-        <div class="detail-label">reviewed_at</div>
-        <div class="detail-value">${fmtDt(d.reviewed_at)}</div>
       </div>
       <div class="detail-item">
         <div class="detail-label">created_at</div>
@@ -1357,7 +1387,7 @@
           <div class="snapshot-img-item">
             <div class="detail-label" style="margin-bottom:4px">item_snapshot</div>
             ${d.item_snapshot_url
-          ? `<img src="${BASE}/${d.item_snapshot_url}" alt="item snapshot" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+          ? `<img src="${BASE}${d.item_snapshot_url}" alt="item snapshot" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
                  <div class="snapshot-no-img" style="display:none">이미지 로드 실패</div>
                  <div class="snapshot-url">${d.item_snapshot_url}</div>`
           : `<div class="snapshot-no-img">—</div>`}
@@ -1365,7 +1395,7 @@
           <div class="snapshot-img-item">
             <div class="detail-label" style="margin-bottom:4px">moment_snapshot</div>
             ${d.moment_snapshot_url
-          ? `<img src="${BASE}/${d.moment_snapshot_url}" alt="moment snapshot" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+          ? `<img src="${BASE}${d.moment_snapshot_url}" alt="moment snapshot" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
                  <div class="snapshot-no-img" style="display:none">이미지 로드 실패</div>
                  <div class="snapshot-url">${d.moment_snapshot_url}</div>`
           : `<div class="snapshot-no-img">—</div>`}

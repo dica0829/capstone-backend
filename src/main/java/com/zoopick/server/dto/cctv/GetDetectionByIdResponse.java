@@ -16,7 +16,11 @@ import java.time.LocalDateTime;
 public class GetDetectionByIdResponse {
     private Long id;
     @JsonProperty("video_id")
-    private Long videoId;;
+    private Long videoId;
+    @JsonProperty("room_name")
+    private String roomName;
+    @JsonProperty("building_name")
+    private String buildingName;
     @JsonProperty("detected_at")
     private LocalDateTime detectedAt;
     @JsonProperty("detected_category")

@@ -50,6 +50,9 @@ public class CctvService {
     @Value("${zoopick.cctv.snapshot-dir}")
     private String snapshotBasePath;
 
+    @Value("${zoopick.cctv.video-dir}")
+    private String videoBasePath;
+
     @Value("${zoopick.cctv.storage-absolute-dir}")
     private String storageDir;
 
@@ -290,8 +293,7 @@ public class CctvService {
         Path target = dir.resolve(filename);
         file.transferTo(target);
 
-        //return target.toAbsolutePath().toString(); 절대경로 반환
-        return "backend/storage/cctv/videos/" + filename; // 상대경로
+        return videoBasePath + "/" + filename;
     }
 
     public GetDetectionsMeResponse getDetectionsMe(Long userId) {

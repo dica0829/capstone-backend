@@ -28,7 +28,8 @@ public interface CctvDetectionMatchRepository extends JpaRepository<CctvDetectio
           AND i.returned_at IS NULL
           AND i.theft_suspected_at IS NULL
           AND i.category = CAST(:category AS item_category)
-          AND i.reported_at <= (CAST(:detectionTime AS timestamp) + interval '6 hours')
+          AND i.reported_at BETWEEN (CAST(:detectedAt AS timestamp) - interval '48 hours')
+                                AND (CAST(:detectedAt AS timestamp) + interval '48 hours')
         ORDER BY i.embedding <=> CAST(:embedding AS vector)
         LIMIT 100
     ) t
@@ -37,7 +38,7 @@ public interface CctvDetectionMatchRepository extends JpaRepository<CctvDetectio
     """, nativeQuery = true)
     List<SimilarItemProjection> findLostItems(@Param("embedding") Vector embedding,
                                                  @Param("category") String category,
-                                                 @Param("detectionTime") LocalDateTime detectionTime,
+                                                 @Param("detectedAt") LocalDateTime detectedAt,
                                                  @Param("threshold") float threshold);
 
     @Query(value = """
@@ -50,7 +51,8 @@ public interface CctvDetectionMatchRepository extends JpaRepository<CctvDetectio
         JOIN zoopick.cctv_videos v ON d.video_id = v.id
         WHERE d.detected_category = CAST(:category AS item_category)
           AND v.room_id IN (:roomIds)
-          AND v.recorded_at >= :lostTime
+          AND d.detected_at BETWEEN (CAST(:reportedAt AS timestamp) - interval '48 hours')
+                                AND (CAST(:reportedAt AS timestamp) + interval '48 hours')
         ORDER BY d.embedding <=> CAST(:embedding AS vector)
         LIMIT 100
     ) t
@@ -60,7 +62,7 @@ public interface CctvDetectionMatchRepository extends JpaRepository<CctvDetectio
     List<SimilarItemProjection> findDetections(@Param("embedding") Vector embedding,
                                               @Param("category") String category,
                                               @Param("roomIds") List<Long> roomIds,
-                                              @Param("lostTime") LocalDateTime lostTime,
+                                              @Param("reportedAt") LocalDateTime reportedAt,
                                               @Param("threshold") float threshold);
 
     // 중복 체크

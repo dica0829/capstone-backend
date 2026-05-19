@@ -1,7 +1,6 @@
 package com.zoopick.server.service;
 
 import com.zoopick.server.config.MatchConfig;
-import com.zoopick.server.dto.match.CctvMatchCriteria;
 import com.zoopick.server.dto.match.CreateCctvMatchEvent;
 import com.zoopick.server.dto.match.SimilarItemResult;
 import com.zoopick.server.entity.*;
@@ -46,7 +45,7 @@ public class CctvMatchService {
         List<SimilarItemResult> similarItems = cctvDetectionMatchRepository.findLostItems(
                 embedding,
                 cctvDetection.getDetectedCategory().name(),
-                cctvDetection.getCctvVideo().getRecordedAt(),
+                cctvDetection.getDetectedAt(),
                 matchConfig.getSimilarityThreshold())
                 .stream()
                 .map(p -> new SimilarItemResult(p.getItemId(), p.getScore()))
@@ -74,14 +73,9 @@ public class CctvMatchService {
                 continue;
             Item lostItem = itemPost.getItem();
 
-            CctvMatchCriteria criteria = cctvMatchCriteriaResolver.resolve(lostItem);
-            if (!criteria.roomIds().contains(detectionRoom.getId())) {
+            List<Long> roomIds = cctvMatchCriteriaResolver.resolveRoomIds(lostItem);
+            if (!roomIds.contains(detectionRoom.getId())) {
                 log.debug("[CCTV] 아이템 검색 범위 외 강의실 탐지 ID: {}", lostItem.getId());
-                continue;
-            }
-
-            if (cctvDetection.getDetectedAt().isBefore(criteria.searchStartTime())) {
-                log.debug("[CCTV] 아이템 검색 시작 시간 이전 탐지 ID: {}", lostItem.getId());
                 continue;
             }
 
@@ -109,8 +103,13 @@ public class CctvMatchService {
 
         Vector embedding = Vector.of(lostItem.getEmbedding());
 
-        CctvMatchCriteria criteria = cctvMatchCriteriaResolver.resolve(lostItem);
-        if (criteria.roomIds().isEmpty()) {
+        if (lostItem.getReportedAt() == null) {
+            log.info("[CCTV] 분실 시각이 없어 매칭을 스킵합니다. ID: {}", lostItemId);
+            return;
+        }
+
+        List<Long> roomIds = cctvMatchCriteriaResolver.resolveRoomIds(lostItem);
+        if (roomIds.isEmpty()) {
             log.info("[CCTV] 매칭 가능한 장소 정보가 없습니다. ID: {}", lostItemId);
             return;
         }
@@ -118,8 +117,8 @@ public class CctvMatchService {
         List<SimilarItemResult> similarItems = cctvDetectionMatchRepository.findDetections(
                 embedding,
                 lostItem.getCategory().name(),
-                criteria.roomIds(),
-                criteria.searchStartTime(),
+                roomIds,
+                lostItem.getReportedAt(),
                 matchConfig.getSimilarityThreshold())
                 .stream()
                 .map(p -> new SimilarItemResult(p.getItemId(), p.getScore()))

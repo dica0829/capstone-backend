@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 
 @Service
@@ -44,7 +45,9 @@ public class ItemPostService {
                 .reportedBuilding(building)
                 .locationName(request.getDetailAddress())
                 .imageUrl(request.getImageUrl())
-                .reportedAt(request.getReportedAt() != null ? request.getReportedAt() : LocalDateTime.now())
+                .reportedAt(request.getReportedAt() != null
+                        ? request.getReportedAt().atZoneSameInstant(ZoneId.of("Asia/Seoul")).toLocalDateTime()
+                        : LocalDateTime.now())
                 .build();
 
         Item savedItem = itemRepository.save(item);

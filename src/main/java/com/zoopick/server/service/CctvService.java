@@ -7,6 +7,7 @@ import com.zoopick.server.entity.*;
 import com.zoopick.server.exception.BadRequestException;
 import com.zoopick.server.exception.DataNotFoundException;
 import com.zoopick.server.exception.ForbiddenException;
+import com.zoopick.server.exception.FastApiUnavailableException;
 import com.zoopick.server.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -71,25 +72,36 @@ public class CctvService {
         return savedVideo.getId();
     }
 
+    @Transactional
     public CctvVideoCreateResponse createVideoAndEnqueue(CctvVideoCreateRequest request) {
-        Long videoId = createVideo(request);
+        // 1. FastAPI 헬스체크 (실패 시 ServiceUnavailableException → 503, DB/디스크 변경 없음)
+        cctvHealthCheck();
 
+        // 2. video 저장 + enqueue를 한 트랜잭션으로 묶어 처리
+        //    (enqueue 실패 시 video/progress 둘 다 rollback → orphan row 방지)
+        Long videoId = createVideo(request);
+        CctvEnqueueResponse enqueueResponse = enqueueVideo(videoId);
+
+        return CctvVideoCreateResponse.builder()
+                .videoId(videoId)
+                .queued(enqueueResponse != null && enqueueResponse.isQueued())
+                .queuePosition(enqueueResponse != null ? enqueueResponse.getQueuePosition() : null)
+                .estimatedStartAt(enqueueResponse != null ? enqueueResponse.getEstimatedStartAt() : null)
+                .build();
+    }
+
+    private void cctvHealthCheck() {
+        String url = fastApiProperties.getBaseUrl() + fastApiProperties.getCctv().getHealthPath();
         try {
-            CctvEnqueueResponse enqueueResponse = enqueueVideo(videoId);
-            return CctvVideoCreateResponse.builder()
-                    .videoId(videoId)
-                    .queued(enqueueResponse != null && enqueueResponse.isQueued())
-                    .queuePosition(enqueueResponse != null ? enqueueResponse.getQueuePosition() : null)
-                    .estimatedStartAt(enqueueResponse != null ? enqueueResponse.getEstimatedStartAt() : null)
-                    .build();
-        } catch (BadRequestException exception) {
-            log.warn("CCTV enqueue failed after video save: video_id={}, reason={}", videoId,
-                    exception.getClientMessage());
-            return CctvVideoCreateResponse.builder()
-                    .videoId(videoId)
-                    .queued(false)
-                    .reason(exception.getClientMessage())
-                    .build();
+            fastApiRestClient.get()
+                    .uri(url)
+                    .retrieve()
+                    .toBodilessEntity();
+        } catch (Exception e) {
+            throw new FastApiUnavailableException(
+                    "AI 서버가 응답하지 않습니다. 잠시 후 다시 시도해주세요.",
+                    "FastAPI healthcheck failed: " + e.getMessage(),
+                    e);
         }
     }
 

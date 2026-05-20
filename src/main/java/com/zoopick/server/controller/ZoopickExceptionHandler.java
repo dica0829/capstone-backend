@@ -1,6 +1,7 @@
 package com.zoopick.server.controller;
 
 import com.zoopick.server.dto.CommonResponse;
+import com.zoopick.server.exception.FastApiUnavailableException;
 import com.zoopick.server.exception.ZoopickException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -55,6 +56,16 @@ public class ZoopickExceptionHandler {
     public ResponseEntity<CommonResponse<Void>> handleNoResourceFoundException(NoResourceFoundException exception) {
         log.warn(exception.getMessage());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(CommonResponse.error("존재하지 않는 경로입니다."));
+    }
+
+    /**
+     * FastAPI 미응답은 운영 환경에서 자주 발생할 수 있는 일시적 외부 의존성 장애이므로,
+     * stack trace 없이 짧은 WARN 한 줄만 로그로 남긴다.
+     */
+    @ExceptionHandler(FastApiUnavailableException.class)
+    public <T> ResponseEntity<CommonResponse<T>> handleFastApiUnavailable(FastApiUnavailableException exception, HttpServletRequest request) {
+        log.warn("({}) {} - {}", request.getRemoteAddr(), exception.getClientMessage(), exception.getMessage());
+        return exception.createResponseEntity();
     }
 
     /**

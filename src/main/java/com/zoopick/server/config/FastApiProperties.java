@@ -29,6 +29,7 @@ public class FastApiProperties {
     public static class Cctv {
         private String enqueuePath;
         private String statusPath;
+        private String healthPath;
         private Duration connectTimeout;
         private Duration readTimeout;
     }

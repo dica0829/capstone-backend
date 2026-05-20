@@ -42,7 +42,7 @@ public class CctvInternalController {
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "진행률 업데이트 성공"),
-            @ApiResponse(responseCode = "404", description = "video_id를 찾을 수 없음"),
+            @ApiResponse(responseCode = "400", description = "video_id에 해당하는 progress를 찾을 수 없음"),
     })
     @PostMapping("/progress")
     public ResponseEntity<?> updateProgress(@RequestBody CctvProgressCallback callback) {
@@ -59,14 +59,14 @@ public class CctvInternalController {
             - detection_id: AI 서버가 발급한 멱등성 키 (중복 호출 방어)
             - embedding: 검출 장면의 CLIP 임베딩
             - 스냅샷 파일명 (item / moment 두 종류)
-            
+
             호출 주체: FastAPI 백그라운드 워커
-            멱등성 보장: 같은 detection_id 재호출 시 무시
+            멱등성 보장: 같은 detection_id 재호출 시 200 OK + duplicate=true 응답
             """
     )
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "검출 등록 성공"),
-            @ApiResponse(responseCode = "409", description = "이미 처리된 detection_id (멱등성)"),
+            @ApiResponse(responseCode = "200", description = "검출 등록 성공 (또는 중복 호출 시 duplicate=true)"),
+            @ApiResponse(responseCode = "404", description = "video_id를 찾을 수 없음"),
     })
     @PostMapping("/detection")
     public ResponseEntity<?> registerDetection(@RequestBody CctvDetectionCallback callback) {

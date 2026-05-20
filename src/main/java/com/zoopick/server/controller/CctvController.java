@@ -40,7 +40,8 @@ public class CctvController {
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "202", description = "등록 + 큐 등록 성공"),
-            @ApiResponse(responseCode = "400", description = "잘못된 요청 (room_id 없음, video_url 형식 오류 등)"),
+            @ApiResponse(responseCode = "400", description = "잘못된 요청 또는 FastAPI enqueue 실패 (room_id 없음, video_url 형식 오류 등)"),
+            @ApiResponse(responseCode = "503", description = "AI(FastAPI) 서버가 응답하지 않아 등록을 진행할 수 없음 (헬스체크 실패)"),
     })
     @PostMapping("/videos")
     public ResponseEntity<CommonResponse<CctvVideoCreateResponse>> createVideoAndEnqueue(@Valid @RequestBody CctvVideoCreateRequest request) {
@@ -58,6 +59,7 @@ public class CctvController {
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "202", description = "재큐잉 성공"),
+            @ApiResponse(responseCode = "400", description = "이미 진행 중/완료된 영상이거나 FastAPI 요청 실패"),
             @ApiResponse(responseCode = "404", description = "영상을 찾을 수 없음"),
     })
     @PostMapping("/enqueue/{videoId}")

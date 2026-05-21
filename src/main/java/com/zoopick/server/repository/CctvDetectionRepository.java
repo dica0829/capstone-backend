@@ -10,10 +10,27 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface CctvDetectionRepository extends JpaRepository<CctvDetection, Long> {
-    List<CctvDetection> findAllByOrderByDetectedAtAsc();
+    @Query("""
+     SELECT d FROM CctvDetection d
+     JOIN FETCH d.cctvVideo v
+     JOIN FETCH v.room r
+     JOIN FETCH r.building b
+     ORDER BY d.detectedAt ASC
+""")
+    List<CctvDetection> findAllWithVideoAndRoomOrderByDetectedAtAsc();
+
+    @Query("""
+     SELECT d FROM CctvDetection d
+     JOIN FETCH d.cctvVideo v
+     JOIN FETCH v.room r
+     JOIN FETCH r.building b
+     WHERE d.id = :id
+""")
+    Optional<CctvDetection> findByIdWithVideoAndRoom(@Param("id") Long id);
 
     @Query("""
      SELECT new com.zoopick.server.dto.cctv.CctvDetectionDetail(

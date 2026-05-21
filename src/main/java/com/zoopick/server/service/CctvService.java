@@ -16,7 +16,9 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -74,7 +76,7 @@ public class CctvService {
 
     @Transactional
     public CctvVideoCreateResponse createVideoAndEnqueue(CctvVideoCreateRequest request) {
-        // 1. FastAPI 헬스체크 (실패 시 ServiceUnavailableException → 503, DB/디스크 변경 없음)
+        // 1. FastAPI 헬스체크 (실패 시 FastApiUnavailableException → 503, DB/디스크 변경 없음)
         cctvHealthCheck();
 
         // 2. video 저장 + enqueue를 한 트랜잭션으로 묶어 처리
@@ -153,9 +155,18 @@ public class CctvService {
                 log.info("CCTV Video analysis queued successfully: video_id={}", videoId);
             }
             return response;
-        } catch (Exception e) {
-            log.error("Failed to enqueue CCTV video analysis: video_id={}, error={}", videoId, e.getMessage());
-            throw new BadRequestException("FastAPI 서버에 분석 요청을 보내지 못했습니다.", e.getMessage());
+        } catch (ResourceAccessException e) {
+            log.warn("FastAPI enqueue connection failed: video_id={}, error={}", videoId, e.getMessage());
+            throw new FastApiUnavailableException(
+                    "AI 서버가 응답하지 않습니다. 잠시 후 다시 시도해주세요.",
+                    "FastAPI enqueue connection failed: " + e.getMessage(),
+                    e);
+        } catch (RestClientResponseException e) {
+            log.error("FastAPI enqueue returned error: video_id={}, status={}, body={}",
+                    videoId, e.getStatusCode(), e.getResponseBodyAsString());
+            throw new BadRequestException(
+                    "FastAPI 서버가 분석 요청을 거부했습니다.",
+                    "status=" + e.getStatusCode() + ", body=" + e.getResponseBodyAsString());
         }
     }
 
@@ -186,6 +197,11 @@ public class CctvService {
 
     @Transactional
     public DetectionRegisterResult registerDetection(CctvDetectionCallback callback) {
+        CctvVideo video = cctvVideoRepository.findById(callback.getVideoId())
+                .orElseThrow(() -> new DataNotFoundException("비디오를 찾을 수 없습니다. video_id: " + callback.getVideoId(),
+                        "VIDEO_NOT_FOUND"));
+
+        // 멱등성 키 중복이면 duplicate=true 반환
         String idempotencyKey = detectionIdempotencyKey(callback.getVideoId(), callback.getDetectionId());
         Boolean isFirstRequest = stringRedisTemplate.opsForValue()
                 .setIfAbsent(idempotencyKey, "1", DETECTION_IDEMPOTENCY_TTL);
@@ -196,33 +212,44 @@ public class CctvService {
             return new DetectionRegisterResult(true, null);
         }
 
-        CctvVideo video = cctvVideoRepository.findById(callback.getVideoId())
-                .orElseThrow(() -> new DataNotFoundException("비디오를 찾을 수 없습니다. video_id: " + callback.getVideoId(),
-                        "VIDEO_NOT_FOUND"));
-
-        String itemUrl = snapshotBasePath + callback.getItemSnapshotFilename();
-        String momentUrl = snapshotBasePath + callback.getMomentSnapshotFilename();
-
-        CctvDetection detection = CctvDetection.builder()
-                .cctvVideo(video)
-                .detectedAt(callback.getDetectedAt())
-                .detectedCategory(callback.getDetectedCategory())
-                .detectedColor(callback.getDetectedColor())
-                .itemSnapshotUrl(itemUrl)
-                .momentSnapshotUrl(momentUrl)
-                .embedding(callback.getEmbedding())
-                .build();
-
+        // 실패 시 멱등성 키를 정리
+        boolean committed = false;
         try {
+            String itemUrl = buildSnapshotUrl(callback.getItemSnapshotFilename());
+            String momentUrl = buildSnapshotUrl(callback.getMomentSnapshotFilename());
+
+            CctvDetection detection = CctvDetection.builder()
+                    .cctvVideo(video)
+                    .detectedAt(callback.getDetectedAt())
+                    .detectedCategory(callback.getDetectedCategory())
+                    .detectedColor(callback.getDetectedColor())
+                    .itemSnapshotUrl(itemUrl)
+                    .momentSnapshotUrl(momentUrl)
+                    .embedding(callback.getEmbedding())
+                    .build();
+
             CctvDetection savedDetection = cctvDetectionRepository.save(detection);
             log.info("New detection registered: video_id={}, ai_detection_id={}",
                     callback.getVideoId(), callback.getDetectionId());
             eventPublisher.publishEvent(new SaveCctvDetectionEvent(savedDetection.getId()));
+            committed = true;
             return new DetectionRegisterResult(false, savedDetection.getId());
-        } catch (RuntimeException e) {
-            stringRedisTemplate.delete(idempotencyKey);
-            throw e;
+        } finally {
+            if (!committed) {
+                try {
+                    stringRedisTemplate.delete(idempotencyKey);
+                } catch (Exception e) {
+                    // Redis 정리 실패는 본 트랜잭션의 rollback을 가리지 않도록 swallow
+                    log.warn("Failed to cleanup idempotency key after detection failure: key={}, error={}",
+                            idempotencyKey, e.getMessage());
+                }
+            }
         }
+    }
+
+    private String buildSnapshotUrl(String filename) {
+        // base의 trailing slash와 filename의 leading slash를 정규화해 // 중복 방지
+        return snapshotBasePath.replaceAll("/+$", "") + "/" + filename.replaceAll("^/+", "");
     }
 
     @Transactional
@@ -233,7 +260,6 @@ public class CctvService {
 
         progress.setStatus(VideoAnalysisStatus.COMPLETED);
         progress.setAnalyzedSeconds(callback.getTotalSeconds());
-        progress.setStartedAt(callback.getStartedAt());
 
         cctvVideoProgressRepository.save(progress);
         log.info("CCTV Video analysis completed: video_id={}, total_detections={}",
@@ -268,7 +294,7 @@ public class CctvService {
 
     @Transactional(readOnly = true)
     public List<GetAllDetectionResponse> getAllCctvDetection() {
-        return cctvDetectionRepository.findAllByOrderByDetectedAtAsc().stream()
+        return cctvDetectionRepository.findAllWithVideoAndRoomOrderByDetectedAtAsc().stream()
                 .map(entity -> {
                     Room room = entity.getCctvVideo().getRoom();
                     return new GetAllDetectionResponse(
@@ -286,7 +312,7 @@ public class CctvService {
 
     @Transactional(readOnly = true)
     public GetDetectionByIdResponse getCctvDetectionById(Long detectionId) {
-        CctvDetection entity = cctvDetectionRepository.findById(detectionId)
+        CctvDetection entity = cctvDetectionRepository.findByIdWithVideoAndRoom(detectionId)
                 .orElseThrow(() -> DataNotFoundException.from("CCTV 물품 정보", detectionId));
 
         Room room = entity.getCctvVideo().getRoom();
@@ -316,11 +342,13 @@ public class CctvService {
         return videoBasePath + "/" + filename;
     }
 
+    @Transactional(readOnly = true)
     public GetDetectionsMeResponse getDetectionsMe(Long userId) {
         List<MatchedLostItems> matchedLostItems = cctvDetectionRepository.findCctvDetectionByUserId(userId, DetectionReviewStatus.PENDING);
         return new GetDetectionsMeResponse(matchedLostItems);
     }
 
+    @Transactional(readOnly = true)
     public GetDetectionByItemIdResponse getDetectionsMeByItemId(Long userId, Long itemId) {
         List<CctvDetectionDetail> cctvDetectionDetail = cctvDetectionRepository.findCctvDetectionDetail(userId, itemId, DetectionReviewStatus.PENDING);
 
@@ -350,15 +378,16 @@ public class CctvService {
             return;
         }
         if (request.getReviewStatus() == DetectionReviewStatus.CONFIRMED_SELF) {
+            LocalDateTime now = LocalDateTime.now();
             Item lostItem = cctvDetectionMatch.getItem();
-            lostItem.theftSuspected(LocalDateTime.now());
+            lostItem.theftSuspected(now);
             lostItem.setStatus(ItemStatus.THEFT_CONFIRMED);
             cctvDetectionMatchRepository.rejectOtherPendingMatches( // 나머지 reject 처리
                     lostItem.getId(),
                     matchId,
                     DetectionReviewStatus.REJECTED_SELF,
                     DetectionReviewStatus.PENDING,
-                    LocalDateTime.now());
+                    now);
             log.info("[CCTV] 도난 상태 저장 완료: itemId={}", lostItem.getId());
         }
 

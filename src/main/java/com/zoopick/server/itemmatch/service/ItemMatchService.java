@@ -6,6 +6,7 @@ import com.zoopick.server.item.entity.Item;
 import com.zoopick.server.item.entity.ItemStatus;
 import com.zoopick.server.item.entity.ItemType;
 import com.zoopick.server.item.repository.ItemRepository;
+import com.zoopick.server.item.service.ItemService;
 import com.zoopick.server.itemmatch.dto.*;
 import com.zoopick.server.itemmatch.entity.ItemMatch;
 import com.zoopick.server.itemmatch.entity.MatchManualType;
@@ -35,6 +36,7 @@ public class ItemMatchService {
     private final LockerRepository lockerRepository;
     private final ApplicationEventPublisher eventPublisher;
     private final MatchConfig matchConfig;
+    private final ItemService itemService;
 
     @Transactional
     public void createMatch(Long itemId) {
@@ -128,8 +130,8 @@ public class ItemMatchService {
 
         boolean wasInLocker = foundItem.getStatus() == ItemStatus.IN_LOCKER;
 
-        lostItem.changeStatus(ItemStatus.MATCHED);
-        foundItem.changeStatus(ItemStatus.MATCHED);
+        itemService.changeItemStatus(lostItem.getId(), ItemStatus.MATCHED);
+        itemService.changeItemStatus(foundItem.getId(), ItemStatus.MATCHED);
         itemMatch.setStatus(MatchStatus.CONFIRMED);
 
         itemMatchRepository.rejectOthersByLostItem(matchId, lostItem.getId(), foundItem.getId());
@@ -190,8 +192,8 @@ public class ItemMatchService {
                 .build());
 
         // 수동 매칭 확정
-        lostItem.changeStatus(ItemStatus.MATCHED);
-        foundItem.changeStatus(ItemStatus.MATCHED);
+        itemService.changeItemStatus(lostItem.getId(), ItemStatus.MATCHED);
+        itemService.changeItemStatus(foundItem.getId(), ItemStatus.MATCHED);
 
         itemMatchRepository.rejectOthersByLostItem(savedMatch.getId(), lostItem.getId(), foundItem.getId());
         log.info("매칭 저장 완료 ID: {}", savedMatch.getId());

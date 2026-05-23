@@ -2,7 +2,6 @@ package com.zoopick.server.item.event;
 
 import com.zoopick.server.auth.entity.User;
 import com.zoopick.server.chat.entity.ChatRoom;
-import com.zoopick.server.chat.entity.ChatRoomStatus;
 import com.zoopick.server.chat.repository.ChatRoomRepository;
 import com.zoopick.server.exception.InternalServerException;
 import com.zoopick.server.item.entity.Item;
@@ -28,6 +27,11 @@ public class ItemReturnedEventListener {
     private final ItemRepository itemRepository;
     private final NotificationService notificationService;
 
+    /**
+     * 도에인: 같은 item에 연결된 모든 chatRoom의 owner는 동일하다
+     *
+     * @param event 이벤트
+     */
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void handleItemReturned(ItemReturnedEvent event) {
@@ -41,8 +45,6 @@ public class ItemReturnedEventListener {
         List<User> finders = chatRooms.stream()
                 .map(ChatRoom::getFinder)
                 .toList();
-
-        chatRooms.forEach(chatRoom -> chatRoom.setStatus(ChatRoomStatus.RESOLVED_RETURNED));
 
         notificationService.send(finders, new SendNotificationCommand(
                 owner.getNickname(),

@@ -1,6 +1,7 @@
 package com.zoopick.server.item.service;
 
 import com.zoopick.server.auth.entity.User;
+import com.zoopick.server.chat.service.ChatRoomResolutionService;
 import com.zoopick.server.item.CreateItemCommand;
 import com.zoopick.server.item.entity.Item;
 import com.zoopick.server.item.entity.ItemStatus;
@@ -23,6 +24,7 @@ import java.time.ZoneId;
 public class ItemService {
     private final ItemRepository itemRepository;
     private final ApplicationEventPublisher applicationEventPublisher;
+    private final ChatRoomResolutionService chatRoomResolutionService;
 
     @Transactional
     public Item createEmptyItem(User reporter, ItemType type, ItemStatus status) {
@@ -57,10 +59,15 @@ public class ItemService {
     }
 
     @Transactional
-    public void markItemAsReturned(long itemId) {
+    public void changeItemStatus(long itemId, ItemStatus itemStatus) {
         Item item = itemRepository.findByIdOrThrow(itemId);
-        item.changeStatus(ItemStatus.RETURNED);
+        if (itemStatus == ItemStatus.RETURNED) {
+            item.changeStatus(ItemStatus.RETURNED);
+            chatRoomResolutionService.resolveReturnedItemRooms(item);
 
-        applicationEventPublisher.publishEvent(new ItemReturnedEvent(itemId));
+            applicationEventPublisher.publishEvent(new ItemReturnedEvent(itemId));
+        } else {
+            item.changeStatus(itemStatus);
+        }
     }
 }

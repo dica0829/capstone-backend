@@ -7,6 +7,10 @@ import org.jspecify.annotations.NullMarked;
 
 import java.util.Map;
 
+@Schema(
+        name = "QrScannedPayload",
+        description = "QR_SCANNED : 사용자 QR payload"
+)
 @NullMarked
 public record QrScannedPayload(
         @JsonProperty("room_id")

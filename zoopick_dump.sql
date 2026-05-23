@@ -232,6 +232,7 @@ CREATE TYPE zoopick.notification_type AS ENUM (
     'CCTV_FOUND',
     'CHAT_MESSAGE',
     'ITEM_RETURNED',
+    'ITEM_REPORTED',
     'THEFT_SUSPECTED',
     'LOCKER_READY',
     'QR_SCANNED'

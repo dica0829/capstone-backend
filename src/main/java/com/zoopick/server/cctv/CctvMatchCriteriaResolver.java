@@ -67,7 +67,7 @@ public class CctvMatchCriteriaResolver {
             return Set.of();
         }
 
-        DayOfWeek targetDay = DayOfWeek.valueOf(reportedTime.getDayOfWeek().name().substring(0, 3));
+        DayOfWeek targetDay = DayOfWeek.from(reportedTime.getDayOfWeek());
         LocalTime targetLocalTime = reportedTime.toLocalTime();
 
         return courseScheduleRepository.findAllByCourseIn(buildingCourses).stream()

@@ -11,6 +11,7 @@ public enum NotificationType {
     CCTV_FOUND(CctvFoundPayload.class),
     CHAT_MESSAGE(ChatMessagePayload.class),
     ITEM_RETURNED(ItemReturnedPayload.class),
+    ITEM_REPORTED(ItemReportedPayload.class),
     THEFT_SUSPECTED(TheftSuspectedPayload.class),
     LOCKER_READY(LockerReadyPayload.class),
     QR_SCANNED(QrScannedPayload.class);

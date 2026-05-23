@@ -1,5 +1,6 @@
 package com.zoopick.server.notification.event;
 
+import com.google.firebase.messaging.BatchResponse;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.Message;
@@ -17,18 +18,24 @@ import java.util.List;
 @NullMarked
 public class NotificationDispatchEventListener {
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void handle(NotificationDispatchRequestedEvent event) throws FirebaseMessagingException {
+    public void handle(NotificationDispatchRequestedEvent event) {
         List<FcmMessageRequest> messageRequests = event.messages();
         List<Message> messages = messageRequests.stream()
                 .filter(FcmMessageRequest::hasToken)
                 .map(this::toMessage)
                 .toList();
 
-        if (!messages.isEmpty())
-            FirebaseMessaging.getInstance().sendEach(messages);
         int unspentCount = messageRequests.size() - messages.size();
         if (unspentCount > 0)
             log.warn("{} / {} notifications could not be dispatched", unspentCount, messageRequests.size());
+        try {
+            if (!messages.isEmpty()) {
+                BatchResponse response = FirebaseMessaging.getInstance().sendEach(messages);
+                log.warn("{} notifications failed to send", response.getFailureCount());
+            }
+        } catch (FirebaseMessagingException exception) {
+            log.error(exception.getMessage(), exception);
+        }
     }
 
     private Message toMessage(FcmMessageRequest request) {

@@ -14,6 +14,7 @@ import com.zoopick.server.itemmatch.entity.MatchStatus;
 import com.zoopick.server.itemmatch.repository.ItemMatchRepository;
 import com.zoopick.server.itempost.dto.*;
 import com.zoopick.server.itempost.entity.ItemPost;
+import com.zoopick.server.itempost.event.ItemPostCreatedEvent;
 import com.zoopick.server.itempost.mapper.ItemPostMapper;
 import com.zoopick.server.itempost.repository.ItemPostRepository;
 import com.zoopick.server.metadata.entity.Building;
@@ -21,6 +22,7 @@ import com.zoopick.server.metadata.repository.BuildingRepository;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -40,6 +42,7 @@ public class ItemPostService {
     private final ItemPostMapper itemPostMapper;
     private final ItemService itemService;
     private final CreateItemCommandMapper createItemCommandMapper;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     @Transactional
     public CreateItemPostResult createItemPost(long userId, CreateItemPostRequest request) {
@@ -55,6 +58,7 @@ public class ItemPostService {
                 .item(savedItem)
                 .build();
         ItemPost savedItemPost = itemPostRepository.save(itemPost);
+        applicationEventPublisher.publishEvent(new ItemPostCreatedEvent(savedItemPost.getId()));
         return new CreateItemPostResult(savedItemPost.getId(), savedItem.getId(), savedItem.getStatus(), "등록되었습니다.");
     }
 

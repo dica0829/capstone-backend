@@ -14,6 +14,7 @@ import com.zoopick.server.exception.FastApiUnavailableException;
 import com.zoopick.server.exception.ForbiddenException;
 import com.zoopick.server.item.entity.Item;
 import com.zoopick.server.item.entity.ItemStatus;
+import com.zoopick.server.item.service.ItemService;
 import com.zoopick.server.metadata.entity.Room;
 import com.zoopick.server.metadata.repository.RoomRepository;
 import lombok.RequiredArgsConstructor;
@@ -54,6 +55,7 @@ public class CctvService {
     private final FastApiProperties fastApiProperties;
     private final ApplicationEventPublisher eventPublisher;
     private final CctvDetectionMatchRepository cctvDetectionMatchRepository;
+    private final ItemService itemService;
     @Value("${zoopick.callback-url}")
     private String callbackBaseUrl;
 
@@ -388,7 +390,7 @@ public class CctvService {
             LocalDateTime now = LocalDateTime.now();
             Item lostItem = cctvDetectionMatch.getItem();
             lostItem.theftSuspected(now);
-            lostItem.changeStatus(ItemStatus.THEFT_CONFIRMED);
+            itemService.changeItemStatus(lostItem.getId(), ItemStatus.THEFT_CONFIRMED);
             cctvDetectionMatchRepository.rejectOtherPendingMatches( // 나머지 reject 처리
                     lostItem.getId(),
                     matchId,

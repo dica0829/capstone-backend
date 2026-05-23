@@ -1,6 +1,8 @@
 package com.zoopick.server.item.entity;
 
+import com.zoopick.server.annotation.ServiceOnly;
 import com.zoopick.server.auth.entity.User;
+import com.zoopick.server.item.service.ItemService;
 import com.zoopick.server.metadata.entity.Building;
 import jakarta.persistence.*;
 import lombok.*;
@@ -85,9 +87,13 @@ public class Item {
     private LocalDateTime updatedAt;
 
     /**
+     * 아이템 상태만 변경한다.
+     * 채팅방 종료, 이벤트 발행 등 부수 효과가 필요한 상태 변경은
+     * 이 메소드를 직접 호출하지 말고 {@link ItemService#changeItemStatus(long, ItemStatus)}를 사용한다.
+     *
      * @param status 바꿀 상태
-     * @see com.zoopick.server.item.service.ItemService#markItemAsReturned(long)
      */
+    @ServiceOnly(ItemService.class)
     public void changeStatus(ItemStatus status) {
         this.status = status;
         if (status == ItemStatus.RETURNED)

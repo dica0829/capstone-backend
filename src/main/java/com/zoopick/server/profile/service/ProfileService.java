@@ -31,6 +31,7 @@ public class ProfileService {
         long unreadCount = notificationRepository.countByUserIdAndReadAtIsNull(userId);
 
         return new ProfileSummaryResponse(
+                userId,
                 user.getNickname(),
                 user.getDepartment(),
                 postCount,

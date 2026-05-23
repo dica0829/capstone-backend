@@ -64,6 +64,7 @@ class ProfileServiceTest {
 
         // then
         assertNotNull(response);
+        assertEquals(USER_ID, response.userId());
         assertEquals("기존닉네임", response.nickname());
         assertEquals("컴퓨터공학과", response.department());
         assertEquals(5L, response.postCount());

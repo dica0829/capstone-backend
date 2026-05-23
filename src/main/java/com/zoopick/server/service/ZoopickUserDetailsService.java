@@ -1,7 +1,7 @@
 package com.zoopick.server.service;
 
-import com.zoopick.server.entity.User;
-import com.zoopick.server.repository.UserRepository;
+import com.zoopick.server.auth.entity.User;
+import com.zoopick.server.auth.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NullMarked;
 import org.springframework.security.core.userdetails.UserDetails;

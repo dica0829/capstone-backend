@@ -1,12 +1,13 @@
 package com.zoopick.server.service;
 
-import com.zoopick.server.dto.profile.ProfileSummaryResponse;
-import com.zoopick.server.dto.profile.ProfileUpdateRequest;
-import com.zoopick.server.entity.User;
-import com.zoopick.server.repository.ChatRoomRepository;
-import com.zoopick.server.repository.ItemPostRepository;
-import com.zoopick.server.repository.NotificationRepository;
-import com.zoopick.server.repository.UserRepository;
+import com.zoopick.server.auth.entity.User;
+import com.zoopick.server.auth.repository.UserRepository;
+import com.zoopick.server.chat.repository.ChatRoomRepository;
+import com.zoopick.server.itempost.repository.ItemPostRepository;
+import com.zoopick.server.notification.repository.NotificationRepository;
+import com.zoopick.server.profile.dto.ProfileSummaryResponse;
+import com.zoopick.server.profile.dto.ProfileUpdateRequest;
+import com.zoopick.server.profile.service.ProfileService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

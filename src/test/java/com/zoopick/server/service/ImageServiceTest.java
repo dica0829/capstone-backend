@@ -1,9 +1,10 @@
 package com.zoopick.server.service;
 
-import com.zoopick.server.dto.image.ImageUploadResult;
 import com.zoopick.server.exception.BadRequestException;
 import com.zoopick.server.exception.DataNotFoundException;
-import com.zoopick.server.image.ImagePurpose;
+import com.zoopick.server.image.dto.ImagePurpose;
+import com.zoopick.server.image.dto.ImageUploadResult;
+import com.zoopick.server.image.serivice.ImageService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

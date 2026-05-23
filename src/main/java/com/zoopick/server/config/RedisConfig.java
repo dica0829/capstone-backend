@@ -1,6 +1,6 @@
 package com.zoopick.server.config;
 
-import com.zoopick.server.entity.EmailAuth;
+import com.zoopick.server.auth.entity.EmailAuth;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;

@@ -1,6 +1,6 @@
 package com.zoopick.server.converter;
 
-import com.zoopick.server.image.ImagePurpose;
+import com.zoopick.server.image.dto.ImagePurpose;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.stereotype.Component;
 

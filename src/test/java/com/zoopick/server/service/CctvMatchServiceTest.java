@@ -1,13 +1,25 @@
 package com.zoopick.server.service;
 
+import com.zoopick.server.auth.entity.Role;
+import com.zoopick.server.auth.entity.User;
+import com.zoopick.server.cctv.CctvMatchCriteriaResolver;
+import com.zoopick.server.cctv.dto.SimilarItemProjection;
+import com.zoopick.server.cctv.entity.CctvDetection;
+import com.zoopick.server.cctv.entity.CctvDetectionMatch;
+import com.zoopick.server.cctv.entity.CctvVideo;
+import com.zoopick.server.cctv.event.CreateCctvMatchEvent;
+import com.zoopick.server.cctv.repository.CctvDetectionMatchRepository;
+import com.zoopick.server.cctv.repository.CctvDetectionRepository;
+import com.zoopick.server.cctv.service.CctvMatchService;
 import com.zoopick.server.config.MatchConfig;
-import com.zoopick.server.dto.match.CreateCctvMatchEvent;
-import com.zoopick.server.dto.match.SimilarItemProjection;
-import com.zoopick.server.entity.*;
-import com.zoopick.server.repository.CctvDetectionMatchRepository;
-import com.zoopick.server.repository.CctvDetectionRepository;
-import com.zoopick.server.repository.ItemPostRepository;
-import com.zoopick.server.repository.ItemRepository;
+import com.zoopick.server.item.entity.Item;
+import com.zoopick.server.item.entity.ItemCategory;
+import com.zoopick.server.item.entity.ItemColor;
+import com.zoopick.server.item.entity.ItemType;
+import com.zoopick.server.item.repository.ItemRepository;
+import com.zoopick.server.itempost.entity.ItemPost;
+import com.zoopick.server.itempost.repository.ItemPostRepository;
+import com.zoopick.server.metadata.entity.Room;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -36,9 +48,11 @@ class CctvMatchServiceTest {
     @Mock ItemRepository itemRepository;
     @Mock ItemPostRepository itemPostRepository;
     @Mock ApplicationEventPublisher eventPublisher;
-    @Mock CctvMatchCriteriaResolver cctvMatchCriteriaResolver;
+    @Mock
+    CctvMatchCriteriaResolver cctvMatchCriteriaResolver;
 
-    @InjectMocks CctvMatchService cctvMatchService;
+    @InjectMocks
+    CctvMatchService cctvMatchService;
 
     @Nested
     @DisplayName("calculateBonusScore() — private 메서드, 리플렉션으로 검증")
@@ -81,7 +95,7 @@ class CctvMatchServiceTest {
         }
 
         private float invokeCalculateBonusScore(double baseScore, ItemColor itemColor, ItemColor detectionColor) {
-            return (float) ReflectionTestUtils.invokeMethod(
+            return ReflectionTestUtils.invokeMethod(
                     cctvMatchService, "calculateBonusScore", baseScore, itemColor, detectionColor);
         }
     }

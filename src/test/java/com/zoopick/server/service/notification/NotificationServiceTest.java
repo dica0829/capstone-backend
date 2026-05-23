@@ -1,15 +1,17 @@
 package com.zoopick.server.service.notification;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.zoopick.server.dto.notification.ChangeReadStatusResult;
-import com.zoopick.server.entity.NotificationType;
-import com.zoopick.server.entity.User;
-import com.zoopick.server.entity.ZoopickNotification;
-import com.zoopick.server.mapper.notification.NotificationMapper;
-import com.zoopick.server.mapper.notification.NotificationPayloadMapper;
-import com.zoopick.server.repository.NotificationRepository;
-import com.zoopick.server.repository.UserRepository;
-import com.zoopick.server.service.notification.payload.NotificationPayload;
+import com.zoopick.server.auth.entity.User;
+import com.zoopick.server.auth.repository.UserRepository;
+import com.zoopick.server.notification.SendNotificationCommand;
+import com.zoopick.server.notification.dto.ChangeReadStatusResult;
+import com.zoopick.server.notification.entity.NotificationType;
+import com.zoopick.server.notification.entity.ZoopickNotification;
+import com.zoopick.server.notification.mapper.NotificationMapper;
+import com.zoopick.server.notification.mapper.NotificationPayloadMapper;
+import com.zoopick.server.notification.payload.NotificationPayload;
+import com.zoopick.server.notification.repository.NotificationRepository;
+import com.zoopick.server.notification.service.NotificationService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

@@ -1,0 +1,16 @@
+package com.zoopick.server.notification.event;
+
+import org.jspecify.annotations.NullMarked;
+
+import java.util.Map;
+import java.util.Optional;
+
+@NullMarked
+public record FcmMessageRequest(
+        Optional<String> token,
+        Map<String, String> data
+) {
+    public boolean hasToken() {
+        return token.isPresent();
+    }
+}

@@ -1,0 +1,39 @@
+package com.zoopick.server.cctv.dto;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.zoopick.server.item.entity.ItemCategory;
+import com.zoopick.server.item.entity.ItemColor;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+import java.time.LocalDateTime;
+
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
+public class GetDetectionByIdResponse {
+    private Long id;
+    @JsonProperty("video_id")
+    private Long videoId;
+    @JsonProperty("room_name")
+    private String roomName;
+    @JsonProperty("building_name")
+    private String buildingName;
+    @JsonProperty("detected_at")
+    private LocalDateTime detectedAt;
+    @JsonProperty("detected_category")
+    private ItemCategory detectedCategory;
+    @JsonProperty("detected_color")
+    private ItemColor detectedColor;
+    @JsonIgnore // embedding은 일단 안볼거같아서 뺌
+    private float[] embedding;
+    @JsonProperty("item_snapshot_url")
+    private String itemSnapshotUrl;
+    @JsonProperty("moment_snapshot_url")
+    private String momentSnapshotUrl;
+    @JsonProperty("created_at")
+    private LocalDateTime createdAt;
+
+}

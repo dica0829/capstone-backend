@@ -1,5 +1,6 @@
 package com.zoopick.server.security;
 
+import com.zoopick.server.auth.service.TokenValidationService;
 import com.zoopick.server.exception.AccessTokenException;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
@@ -40,12 +41,12 @@ public class JwtUtil {
 
     /**
      * 토근의 만료 시간, 인증 확인후 결과 반환한다.<br/>
-     * 토큰의 무효화 검사가 필요할 경우 {@link com.zoopick.server.service.TokenValidationService#validateTokenOrThrow(String)} 사용
+     * 토큰의 무효화 검사가 필요할 경우 {@link TokenValidationService#validateTokenOrThrow(String)} 사용
      *
      * @param token 검사할 토큰
      * @return True 일 시 만료된 토큰
      * @throws AccessTokenException 토큰이 유효하지 않음
-     * @see com.zoopick.server.service.TokenValidationService#validateTokenOrThrow(String)
+     * @see TokenValidationService#validateTokenOrThrow(String)
      */
     public boolean isExpirationValid(String token) {
         return !getClaims(token).getExpiration().before(new Date());

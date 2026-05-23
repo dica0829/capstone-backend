@@ -1,7 +1,7 @@
 package com.zoopick.server.security;
 
-import com.zoopick.server.repository.UserRepository;
-import com.zoopick.server.service.TokenValidationService;
+import com.zoopick.server.auth.repository.UserRepository;
+import com.zoopick.server.auth.service.TokenValidationService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

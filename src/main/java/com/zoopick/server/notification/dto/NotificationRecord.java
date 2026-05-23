@@ -1,0 +1,44 @@
+package com.zoopick.server.notification.dto;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.zoopick.server.notification.entity.NotificationType;
+import com.zoopick.server.notification.payload.*;
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Getter;
+import lombok.Setter;
+
+import java.time.LocalDateTime;
+
+/**
+ * 알림 하나의 데이터
+ */
+@Getter
+@Setter
+@Schema(description = "알림 단건 응답")
+public class NotificationRecord {
+    @Schema(description = "알림 ID", example = "101")
+    private long id;
+
+    @Schema(description = "알림 타입", example = "CHAT_MESSAGE")
+    private NotificationType type;
+
+    @Schema(
+            description = "알림 타입별 payload입니다.",
+            oneOf = {
+                    MatchFoundPayload.class,
+                    ChatMessagePayload.class,
+                    ItemReturnedPayload.class,
+                    TheftSuspectedPayload.class,
+                    LockerReadyPayload.class
+            }
+    )
+    private NotificationPayload payload;
+
+    @JsonProperty("read_at")
+    @Schema(description = "읽음 시각", example = "2026-05-09T14:30:00")
+    private LocalDateTime readAt;
+
+    @JsonProperty("created_at")
+    @Schema(description = "생성 시각", example = "2026-05-09T14:20:00")
+    private LocalDateTime createdAt;
+}

@@ -1,10 +1,20 @@
 package com.zoopick.server.service;
 
-import com.zoopick.server.dto.match.CreateCctvMatchEvent;
-import com.zoopick.server.entity.*;
-import com.zoopick.server.repository.UserRepository;
-import com.zoopick.server.service.notification.NotificationService;
-import com.zoopick.server.service.notification.SendNotificationCommand;
+import com.zoopick.server.auth.entity.Role;
+import com.zoopick.server.auth.entity.User;
+import com.zoopick.server.auth.repository.UserRepository;
+import com.zoopick.server.cctv.entity.CctvDetection;
+import com.zoopick.server.cctv.entity.CctvDetectionMatch;
+import com.zoopick.server.cctv.entity.CctvVideo;
+import com.zoopick.server.cctv.event.CreateCctvMatchEvent;
+import com.zoopick.server.cctv.event.CreateCctvMatchEventListner;
+import com.zoopick.server.item.entity.Item;
+import com.zoopick.server.item.entity.ItemCategory;
+import com.zoopick.server.item.entity.ItemType;
+import com.zoopick.server.itempost.entity.ItemPost;
+import com.zoopick.server.metadata.entity.Room;
+import com.zoopick.server.notification.SendNotificationCommand;
+import com.zoopick.server.notification.service.NotificationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -27,7 +37,8 @@ class CreateCctvMatchEventListnerTest {
     @Mock NotificationService notificationService;
     @Mock UserRepository userRepository;
 
-    @InjectMocks CreateCctvMatchEventListner listener;
+    @InjectMocks
+    CreateCctvMatchEventListner listener;
 
     User reporter;
     Item item;

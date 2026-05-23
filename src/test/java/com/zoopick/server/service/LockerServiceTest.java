@@ -1,9 +1,21 @@
 package com.zoopick.server.service;
 
-import com.zoopick.server.entity.*;
+import com.zoopick.server.auth.entity.User;
+import com.zoopick.server.auth.repository.UserRepository;
+import com.zoopick.server.chat.entity.ChatRoomStatus;
+import com.zoopick.server.chat.repository.ChatRoomRepository;
 import com.zoopick.server.exception.BadRequestException;
 import com.zoopick.server.exception.ForbiddenException;
-import com.zoopick.server.repository.*;
+import com.zoopick.server.item.entity.Item;
+import com.zoopick.server.item.entity.ItemStatus;
+import com.zoopick.server.item.entity.ItemType;
+import com.zoopick.server.item.repository.ItemRepository;
+import com.zoopick.server.itemmatch.entity.MatchStatus;
+import com.zoopick.server.itemmatch.repository.ItemMatchRepository;
+import com.zoopick.server.locker.entity.*;
+import com.zoopick.server.locker.repository.LockerCommandRepository;
+import com.zoopick.server.locker.repository.LockerRepository;
+import com.zoopick.server.locker.service.LockerService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

@@ -1,6 +1,6 @@
 package com.zoopick.server.websocket;
 
-import com.zoopick.server.service.ChatRoomService;
+import com.zoopick.server.chat.service.ChatRoomService;
 import com.zoopick.server.websocket.message.ChatBroadcastPayload;
 import com.zoopick.server.websocket.message.ChatEventPayload;
 import com.zoopick.server.websocket.message.ChatInformationPayload;

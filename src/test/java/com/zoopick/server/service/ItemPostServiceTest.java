@@ -1,12 +1,18 @@
 package com.zoopick.server.service;
 
-import com.zoopick.server.dto.item.*;
-import com.zoopick.server.entity.*;
-import com.zoopick.server.mapper.ItemPostMapper;
-import com.zoopick.server.repository.BuildingRepository;
-import com.zoopick.server.repository.ItemPostRepository;
-import com.zoopick.server.repository.ItemRepository;
-import com.zoopick.server.repository.UserRepository;
+import com.zoopick.server.auth.entity.User;
+import com.zoopick.server.auth.repository.UserRepository;
+import com.zoopick.server.item.entity.Item;
+import com.zoopick.server.item.entity.ItemStatus;
+import com.zoopick.server.item.event.ItemCreatedEvent;
+import com.zoopick.server.item.repository.ItemRepository;
+import com.zoopick.server.itempost.dto.*;
+import com.zoopick.server.itempost.entity.ItemPost;
+import com.zoopick.server.itempost.mapper.ItemPostMapper;
+import com.zoopick.server.itempost.repository.ItemPostRepository;
+import com.zoopick.server.itempost.service.ItemPostService;
+import com.zoopick.server.metadata.entity.Building;
+import com.zoopick.server.metadata.repository.BuildingRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -22,7 +28,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -86,7 +92,7 @@ class ItemPostServiceTest {
         when(request.getBuildingId()).thenReturn(10L);
         when(request.getTitle()).thenReturn("지갑 찾습니다");
         when(request.getDescription()).thenReturn("검은색 가죽 지갑입니다.");
-        when(request.getReportedAt()).thenReturn(LocalDateTime.now());
+        when(request.getReportedAt()).thenReturn(OffsetDateTime.now());
 
         when(userRepository.findByIdOrThrow(1L)).thenReturn(user);
         when(buildingRepository.findByIdOrThrow(10L)).thenReturn(building);

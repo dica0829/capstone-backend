@@ -1,6 +1,8 @@
 package com.zoopick.server.service;
 
-import com.zoopick.server.dto.match.SaveCctvDetectionEvent;
+import com.zoopick.server.cctv.event.SaveCctvDetectionEvent;
+import com.zoopick.server.cctv.event.SaveCctvDetectionListner;
+import com.zoopick.server.cctv.service.CctvMatchService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -13,9 +15,11 @@ import static org.mockito.BDDMockito.then;
 @ExtendWith(MockitoExtension.class)
 class SaveCctvDetectionListnerTest {
 
-    @Mock CctvMatchService cctvMatchService;
+    @Mock
+    CctvMatchService cctvMatchService;
 
-    @InjectMocks SaveCctvDetectionListner listner;
+    @InjectMocks
+    SaveCctvDetectionListner listner;
 
     @Test
     @DisplayName("SaveCctvDetectionEvent 수신 시 matchCctvToLostItems()를 호출한다")

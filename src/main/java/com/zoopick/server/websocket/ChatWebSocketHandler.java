@@ -2,10 +2,10 @@ package com.zoopick.server.websocket;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.zoopick.server.chat.service.ChatRoomService;
 import com.zoopick.server.exception.BadRequestException;
 import com.zoopick.server.exception.DataNotFoundException;
 import com.zoopick.server.exception.InternalServerException;
-import com.zoopick.server.service.ChatRoomService;
 import com.zoopick.server.websocket.message.ChatErrorPayload;
 import com.zoopick.server.websocket.message.ChatRequestMessage;
 import lombok.RequiredArgsConstructor;

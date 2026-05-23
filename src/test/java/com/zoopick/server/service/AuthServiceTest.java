@@ -1,13 +1,15 @@
 package com.zoopick.server.service;
 
-import com.zoopick.server.dto.auth.*;
-import com.zoopick.server.entity.EmailAuth;
-import com.zoopick.server.entity.User;
+import com.zoopick.server.auth.dto.*;
+import com.zoopick.server.auth.entity.EmailAuth;
+import com.zoopick.server.auth.entity.User;
+import com.zoopick.server.auth.repository.EmailAuthRedisRepository;
+import com.zoopick.server.auth.repository.UserRepository;
+import com.zoopick.server.auth.service.AuthService;
+import com.zoopick.server.auth.service.TokenValidationService;
 import com.zoopick.server.exception.AccessTokenException;
 import com.zoopick.server.exception.BadRequestException;
 import com.zoopick.server.exception.DataNotFoundException;
-import com.zoopick.server.repository.EmailAuthRedisRepository;
-import com.zoopick.server.repository.UserRepository;
 import com.zoopick.server.security.JwtUtil;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

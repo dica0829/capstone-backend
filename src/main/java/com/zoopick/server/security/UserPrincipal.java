@@ -1,6 +1,6 @@
 package com.zoopick.server.security;
 
-import com.zoopick.server.entity.Role;
+import com.zoopick.server.auth.entity.Role;
 import org.jspecify.annotations.NullMarked;
 import org.springframework.security.core.AuthenticatedPrincipal;
 

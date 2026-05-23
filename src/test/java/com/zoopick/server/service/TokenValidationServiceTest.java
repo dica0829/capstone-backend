@@ -1,5 +1,6 @@
 package com.zoopick.server.service;
 
+import com.zoopick.server.auth.service.TokenValidationService;
 import com.zoopick.server.exception.AccessTokenException;
 import com.zoopick.server.security.JwtUtil;
 import org.junit.jupiter.api.DisplayName;

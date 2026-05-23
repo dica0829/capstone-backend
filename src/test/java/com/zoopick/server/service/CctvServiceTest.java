@@ -1,13 +1,25 @@
 package com.zoopick.server.service;
 
+import com.zoopick.server.auth.entity.Role;
+import com.zoopick.server.auth.entity.User;
+import com.zoopick.server.cctv.dto.CctvCompletedCallback;
+import com.zoopick.server.cctv.dto.CctvDetectionCallback;
+import com.zoopick.server.cctv.dto.CctvDetectionReviewRequest;
+import com.zoopick.server.cctv.dto.CctvFailedCallback;
+import com.zoopick.server.cctv.entity.*;
+import com.zoopick.server.cctv.event.SaveCctvDetectionEvent;
+import com.zoopick.server.cctv.repository.CctvDetectionMatchRepository;
+import com.zoopick.server.cctv.repository.CctvDetectionRepository;
+import com.zoopick.server.cctv.repository.CctvVideoProgressRepository;
+import com.zoopick.server.cctv.repository.CctvVideoRepository;
+import com.zoopick.server.cctv.service.CctvService;
 import com.zoopick.server.config.FastApiProperties;
-import com.zoopick.server.dto.cctv.*;
-import com.zoopick.server.dto.match.SaveCctvDetectionEvent;
-import com.zoopick.server.entity.*;
 import com.zoopick.server.exception.BadRequestException;
 import com.zoopick.server.exception.DataNotFoundException;
 import com.zoopick.server.exception.ForbiddenException;
-import com.zoopick.server.repository.*;
+import com.zoopick.server.item.entity.*;
+import com.zoopick.server.metadata.entity.Room;
+import com.zoopick.server.metadata.repository.RoomRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -27,7 +39,8 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.*;
 import static org.mockito.Mockito.mock;
@@ -35,18 +48,24 @@ import static org.mockito.Mockito.mock;
 @ExtendWith(MockitoExtension.class)
 class CctvServiceTest {
 
-    @Mock CctvVideoRepository cctvVideoRepository;
-    @Mock CctvVideoProgressRepository cctvVideoProgressRepository;
-    @Mock CctvDetectionRepository cctvDetectionRepository;
-    @Mock CctvDetectionMatchRepository cctvDetectionMatchRepository;
-    @Mock RoomRepository roomRepository;
+    @Mock
+    CctvVideoRepository cctvVideoRepository;
+    @Mock
+    CctvVideoProgressRepository cctvVideoProgressRepository;
+    @Mock
+    CctvDetectionRepository cctvDetectionRepository;
+    @Mock
+    CctvDetectionMatchRepository cctvDetectionMatchRepository;
+    @Mock
+    RoomRepository roomRepository;
     @Mock StringRedisTemplate stringRedisTemplate;
     @Mock ValueOperations<String, String> valueOperations;
     @Mock RestClient fastApiRestClient;
     @Mock FastApiProperties fastApiProperties;
     @Mock ApplicationEventPublisher eventPublisher;
 
-    @InjectMocks CctvService cctvService;
+    @InjectMocks
+    CctvService cctvService;
 
     @BeforeEach
     void setValueFields() {

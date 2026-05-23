@@ -1,9 +1,9 @@
 package com.zoopick.server.websocket;
 
-import com.zoopick.server.repository.UserRepository;
+import com.zoopick.server.auth.repository.UserRepository;
+import com.zoopick.server.auth.service.TokenValidationService;
 import com.zoopick.server.security.JwtUtil;
 import com.zoopick.server.security.UserPrincipal;
-import com.zoopick.server.service.TokenValidationService;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;

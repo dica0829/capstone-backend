@@ -1,13 +1,25 @@
 package com.zoopick.server.service;
 
+import com.zoopick.server.auth.entity.User;
+import com.zoopick.server.cctv.dto.SimilarItemProjection;
 import com.zoopick.server.config.MatchConfig;
-import com.zoopick.server.dto.match.*;
-import com.zoopick.server.entity.*;
 import com.zoopick.server.exception.BadRequestException;
-import com.zoopick.server.repository.ItemMatchRepository;
-import com.zoopick.server.repository.ItemPostRepository;
-import com.zoopick.server.repository.ItemRepository;
-import com.zoopick.server.repository.LockerRepository;
+import com.zoopick.server.item.entity.*;
+import com.zoopick.server.item.repository.ItemRepository;
+import com.zoopick.server.itemmatch.dto.ItemMatchResultResponse;
+import com.zoopick.server.itemmatch.dto.MatchConfirmResponse;
+import com.zoopick.server.itemmatch.dto.MatchManualRequest;
+import com.zoopick.server.itemmatch.dto.MatchManualResponse;
+import com.zoopick.server.itemmatch.entity.ItemMatch;
+import com.zoopick.server.itemmatch.entity.MatchManualType;
+import com.zoopick.server.itemmatch.entity.MatchStatus;
+import com.zoopick.server.itemmatch.event.CreateMatchEvent;
+import com.zoopick.server.itemmatch.repository.ItemMatchRepository;
+import com.zoopick.server.itemmatch.service.ItemMatchService;
+import com.zoopick.server.itempost.entity.ItemPost;
+import com.zoopick.server.itempost.repository.ItemPostRepository;
+import com.zoopick.server.locker.entity.Locker;
+import com.zoopick.server.locker.repository.LockerRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -227,7 +239,7 @@ class ItemMatchServiceTest {
         when(request.getLostItemId()).thenReturn(100L);
         when(request.getFoundItemId()).thenReturn(200L);
 
-        foundItem.setStatus(ItemStatus.IN_LOCKER); // 보관함 상태로 변경
+        foundItem.changeStatus(ItemStatus.IN_LOCKER); // 보관함 상태로 변경
         Locker locker = Locker.builder().id(5L).build();
 
         when(itemRepository.findByIdOrThrow(100L)).thenReturn(lostItem);

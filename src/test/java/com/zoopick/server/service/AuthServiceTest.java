@@ -28,6 +28,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
@@ -390,11 +391,12 @@ class AuthServiceTest {
     @DisplayName("유효하지 않은 토큰으로 로그아웃 시 예외가 발생한다.")
     void logout_Fail_InvalidToken() {
         // Given
+        long userId = 1L;
         String invalidToken = "invalid.token";
         given(tokenValidationService.validateTokenOrThrow(invalidToken)).willReturn(false);
 
         // When & Then
-        assertThatThrownBy(() -> authService.logout(invalidToken))
+        assertThatThrownBy(() -> authService.logout(userId, invalidToken))
                 .isInstanceOf(AccessTokenException.class)
                 .hasMessageContaining("expired or invalidated");
     }
@@ -403,11 +405,14 @@ class AuthServiceTest {
     @DisplayName("로그아웃 시 현재 유효한 토큰을 무효화(블랙리스트 처리)한다.")
     void logout_Success() {
         // Given
+        long userId = 1L;
         String token = "valid.jwt.token";
+        User user = mock(User.class);
         given(tokenValidationService.validateTokenOrThrow(token)).willReturn(true);
+        given(userRepository.findByIdOrThrow(userId)).willReturn(user);
 
         // When
-        authService.logout(token);
+        authService.logout(userId, token);
 
         // Then
         verify(tokenValidationService).invalidateToken(token);

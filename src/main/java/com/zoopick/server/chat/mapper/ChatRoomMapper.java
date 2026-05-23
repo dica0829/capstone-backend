@@ -3,6 +3,7 @@ package com.zoopick.server.chat.mapper;
 import com.zoopick.server.chat.dto.ChatRoomRecord;
 import com.zoopick.server.chat.entity.ChatRoom;
 import com.zoopick.server.item.entity.Item;
+import com.zoopick.server.item.entity.ItemStatus;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Component;
@@ -18,6 +19,7 @@ public class ChatRoomMapper {
                 .finderNickname(chatRoom.getFinder().getNickname())
                 .itemName(resolveItemDetail(chatRoom.getItem()))
                 .itemId(resolveItemId(chatRoom.getItem()))
+                .itemStatus(resolveItemStatus(chatRoom.getItem()))
                 .build();
     }
 
@@ -32,5 +34,12 @@ public class ChatRoomMapper {
         if (item == null)
             return null;
         return item.getId();
+    }
+
+    @Nullable
+    private ItemStatus resolveItemStatus(@Nullable Item item) {
+        if (item == null)
+            return null;
+        return item.getStatus();
     }
 }

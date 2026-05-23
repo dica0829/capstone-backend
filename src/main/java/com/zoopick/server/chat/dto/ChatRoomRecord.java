@@ -2,6 +2,7 @@ package com.zoopick.server.chat.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.zoopick.server.chat.entity.ChatRoomStatus;
+import com.zoopick.server.item.entity.ItemStatus;
 import lombok.*;
 
 @Getter
@@ -21,4 +22,6 @@ public class ChatRoomRecord {
     private String itemName;
     @JsonProperty("item_id")
     private Long itemId;
+    @JsonProperty("item_status")
+    private ItemStatus itemStatus;
 }

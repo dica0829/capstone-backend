@@ -31,7 +31,9 @@ public class NotificationDispatchEventListener {
         try {
             if (!messages.isEmpty()) {
                 BatchResponse response = FirebaseMessaging.getInstance().sendEach(messages);
-                log.warn("{} notifications failed to send", response.getFailureCount());
+                int failedCount = response.getFailureCount();
+                if (failedCount > 0)
+                    log.warn("{} notifications failed to send", failedCount);
             }
         } catch (FirebaseMessagingException exception) {
             log.error(exception.getMessage(), exception);

@@ -136,7 +136,7 @@ public class CctvMatchService {
                 lostItem.getCategory().name(),
                 roomIds,
                 lostItem.getReportedAt(),
-                matchConfig.getSimilarityThreshold())
+                matchConfig.getCctvSimilarityThreshold())
                 .stream()
                 .map(p -> new SimilarItemResult(p.getItemId(), p.getScore()))
                 .toList();

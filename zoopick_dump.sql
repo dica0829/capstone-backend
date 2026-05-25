@@ -1680,6 +1680,21 @@ ALTER TABLE ONLY zoopick.users
 
 
 --
+-- Name: idx_items_embedding_hnsw; Type: INDEX; Schema: zoopick; Owner: postgres
+--
+
+CREATE INDEX idx_items_embedding_hnsw ON zoopick.items USING hnsw (embedding vector_cosine_ops);
+
+
+--
+-- Name: idx_detections_embedding_hnsw; Type: INDEX; Schema: zoopick; Owner: postgres
+--
+
+CREATE INDEX idx_detections_embedding_hnsw ON zoopick.cctv_detections USING hnsw (embedding vector_cosine_ops);
+
+
+
+--
 -- Name: idx_chatrooms_open; Type: INDEX; Schema: zoopick; Owner: postgres
 --
 

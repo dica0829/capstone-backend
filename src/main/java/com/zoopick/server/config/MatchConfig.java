@@ -11,5 +11,6 @@ import org.springframework.stereotype.Component;
 @Setter
 public class MatchConfig {
     private float similarityThreshold; // 코사인 유사도 임계값
+    private float cctvSimilarityThreshold; // CCTV 코사인 유사도 임계값
     private float colorBonus; // 색깔 같으면 가산점
 }

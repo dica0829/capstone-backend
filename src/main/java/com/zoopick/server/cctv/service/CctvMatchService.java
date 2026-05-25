@@ -53,7 +53,7 @@ public class CctvMatchService {
                 embedding,
                 cctvDetection.getDetectedCategory().name(),
                 cctvDetection.getDetectedAt(),
-                matchConfig.getSimilarityThreshold())
+                matchConfig.getCctvSimilarityThreshold())
                 .stream()
                 .map(p -> new SimilarItemResult(p.getItemId(), p.getScore()))
                 .toList();

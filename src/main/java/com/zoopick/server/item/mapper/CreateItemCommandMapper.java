@@ -19,7 +19,7 @@ public class CreateItemCommandMapper {
                 .imageUrl(request.getImageUrl())
                 .building(building)
                 .detailAddress(request.getDetailAddress())
-                .reportedAd(request.getReportedAt())
+                .reportedAt(request.getReportedAt())
                 .build();
     }
 

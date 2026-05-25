@@ -18,7 +18,7 @@ public record CreateItemCommand(
         String imageUrl,
         Building building,
         String detailAddress,
-        OffsetDateTime reportedAd
+        OffsetDateTime reportedAt
 ) {
 
 }

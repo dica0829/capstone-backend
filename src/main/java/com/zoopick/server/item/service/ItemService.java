@@ -48,8 +48,8 @@ public class ItemService {
                 .reportedBuilding(command.building())
                 .locationName(command.detailAddress())
                 .imageUrl(command.imageUrl())
-                .reportedAt(command.reportedAd() != null
-                        ? command.reportedAd().atZoneSameInstant(ZoneId.of("Asia/Seoul")).toLocalDateTime()
+                .reportedAt(command.reportedAt() != null
+                        ? command.reportedAt().atZoneSameInstant(ZoneId.of("Asia/Seoul")).toLocalDateTime()
                         : LocalDateTime.now())
                 .build();
 

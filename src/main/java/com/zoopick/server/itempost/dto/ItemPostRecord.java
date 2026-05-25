@@ -37,4 +37,7 @@ public class ItemPostRecord {
     private String detailAddress;
     @JsonProperty("created_at")
     private LocalDateTime createdAt;
+    @JsonProperty("reported_at")
+    private LocalDateTime reportedAt;
+    private String nickname;
 }

@@ -26,6 +26,8 @@ public class ItemPostMapper {
                 .buildingId(itemPost.getItem().getReportedBuilding().getId())
                 .detailAddress(itemPost.getItem().getLocationName())
                 .createdAt(itemPost.getCreatedAt())
+                .reportedAt(itemPost.getItem().getReportedAt())
+                .nickname(itemPost.getUser().getNickname())
                 .build();
     }
 }

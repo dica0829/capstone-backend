@@ -65,7 +65,7 @@ public class ItemPostController {
             @RequestBody(required = false) @Nullable ItemPostFilter filter
     ) {
         Pageable pageable = PageRequest.of(page, size)
-                .withSort(Sort.by(Sort.Direction.ASC, "createdAt"));
+                .withSort(Sort.by(Sort.Direction.DESC, "createdAt"));
         ListItemPostResult result = itemPostService.getItemPosts(filter, pageable);
         return ResponseEntity.ok(CommonResponse.success(result));
     }

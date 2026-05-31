@@ -23,7 +23,7 @@ public class QrCodeGenerator {
     private static final int BOTTOM_PADDING = 16;
     private static final int SIDE_PADDING = 16;
     private static final Font TITLE_FONT = new Font("SansSerif", Font.BOLD, 24);
-    private static final String TITLE = "Zoopick";
+    private static final String TITLE = "Zupzup";
 
     public byte[] generate(String content) {
         try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {

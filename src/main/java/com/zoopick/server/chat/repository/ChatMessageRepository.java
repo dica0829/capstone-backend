@@ -40,5 +40,9 @@ public interface ChatMessageRepository extends JpaRepository<ChatMessage, Long>,
 
     List<ChatMessage> findByRoomAndSenderIsNot(@NotNull ChatRoom room, @NotNull User sender);
 
+    ChatMessage findFirstByRoomOrderBySentAtDesc(@NotNull ChatRoom room);
+
+    long countByRoomAndSenderAndReadAtIsNull(@NotNull ChatRoom room, @NotNull User sender);
+
     List<ChatMessage> findByRoomOrderBySentAt(@NotNull ChatRoom room, Specification<ChatMessage> chatMessageSpecification);
 }

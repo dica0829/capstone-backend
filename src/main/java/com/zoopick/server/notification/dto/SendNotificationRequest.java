@@ -36,5 +36,6 @@ public class SendNotificationRequest {
                     LockerReadyPayload.class
             }
     )
+    @Builder.Default
     private Map<String, Object> payload = Map.of();
 }

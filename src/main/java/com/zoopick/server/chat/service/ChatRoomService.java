@@ -57,7 +57,7 @@ public class ChatRoomService {
 
         Optional<ChatRoom> existingChatRoom = chatRoomRepository.findOpenByParticipantAndItem(requesterId, itemId);
         if (existingChatRoom.isPresent()) {
-            return new CreateChatRoomResult(false, chatRoomMapper.toChatRoomRecord(existingChatRoom.get()));
+            return new CreateChatRoomResult(false, chatRoomMapper.toChatRoomRecord(existingChatRoom.get(), null, 0));
         }
 
         ChatRoom chatRoom = ChatRoom.builder()
@@ -66,7 +66,7 @@ public class ChatRoomService {
                 .finder(ChatRoomParticipantHelper.resolveFinder(item.getType(), requester, counterpart))
                 .build();
         ChatRoom savedChatRoom = chatRoomRepository.save(chatRoom);
-        return new CreateChatRoomResult(true, chatRoomMapper.toChatRoomRecord(savedChatRoom));
+        return new CreateChatRoomResult(true, chatRoomMapper.toChatRoomRecord(savedChatRoom, null, 0));
     }
 
     @Transactional
@@ -86,7 +86,7 @@ public class ChatRoomService {
                 "분실물을 발견했어요!",
                 new QrScannedPayload(savedChatRoom.getId(), requester.getNickname())
         ));
-        return new CreateChatRoomResult(true, chatRoomMapper.toChatRoomRecord(savedChatRoom));
+        return new CreateChatRoomResult(true, chatRoomMapper.toChatRoomRecord(savedChatRoom, null, 0));
     }
 
     public FindChatRoomResult findChatRoom(long userId, long itemId) {
@@ -107,9 +107,12 @@ public class ChatRoomService {
     public ChatRoomRecord getChatRoom(long userId, long chatRoomId) {
         User user = userRepository.findByIdOrThrow(userId);
         ChatRoom chatRoom = chatRoomRepository.findByIdOrThrow(chatRoomId);
+        User counterpart = ChatRoomParticipantHelper.resolveCounterpart(chatRoom, user);
         ChatRoomParticipantHelper.verifyParticipant(chatRoom, user);
+        ChatMessage lastMessage = chatMessageRepository.findFirstByRoomOrderBySentAtDesc(chatRoom);
+        long unreadCount = chatMessageRepository.countByRoomAndSenderAndReadAtIsNull(chatRoom, counterpart);
 
-        return chatRoomMapper.toChatRoomRecord(chatRoom);
+        return chatRoomMapper.toChatRoomRecord(chatRoom, lastMessage, unreadCount);
     }
 
     public List<Long> getParticipants(long chatRoomId) {
@@ -120,13 +123,17 @@ public class ChatRoomService {
     public ListMessagesResult getMessages(long userId, long chatRoomId, @Nullable MessageFilter filter) {
         User user = userRepository.findByIdOrThrow(userId);
         ChatRoom chatRoom = chatRoomRepository.findByIdOrThrow(chatRoomId);
+        User counterpart = ChatRoomParticipantHelper.resolveCounterpart(chatRoom, user);
         ChatRoomParticipantHelper.verifyParticipant(chatRoom, user);
 
         List<ChatMessage> messages = chatMessageRepository.findByRoomOrderBySentAt(chatRoom, ChatMessageRepository.applyFilter(filter));
         List<MessageRecord> messageRecords = messages.stream()
                 .map(chatMessageMapper::toMessageRecord)
                 .toList();
-        ChatRoomRecord chatRoomRecord = chatRoomMapper.toChatRoomRecord(chatRoom);
+        long unreadCount = messages.stream()
+                .filter(message -> message.getSender().getId().equals(counterpart.getId()) && message.getReadAt() == null)
+                .count();
+        ChatRoomRecord chatRoomRecord = chatRoomMapper.toChatRoomRecord(chatRoom, messages.get(messages.size() - 1), unreadCount);
         return new ListMessagesResult(chatRoomRecord, messageRecords);
     }
 

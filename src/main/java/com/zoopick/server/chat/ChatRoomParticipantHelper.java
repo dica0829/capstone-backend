@@ -58,4 +58,12 @@ public class ChatRoomParticipantHelper {
             return owner;
         return finder;
     }
+
+    public static User resolveCounterpart(ChatRoom chatRoom, User user) {
+        User owner = chatRoom.getOwner();
+        User finder = chatRoom.getFinder();
+        if (finder.getId().equals(user.getId()))
+            return owner;
+        return finder;
+    }
 }

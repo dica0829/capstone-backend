@@ -800,7 +800,7 @@
   <div class="layout">
     <header>
       <div class="logo">ZooPick <span>/</span> CCTV Console</div>
-      <div class="header-badge"><span class="status-dot"></span>localhost:8080</div>
+      <div class="header-badge"><span class="status-dot"></span><span id="base-url-label"></span></div>
     </header>
 
     <nav>
@@ -1039,7 +1039,13 @@
   </div>
 
   <script>
-    const BASE = 'http://localhost:8080';
+    let BASE = normalizeBaseUrl(${ZOOPICK_BASE_URL});
+
+    function normalizeBaseUrl(url) {
+      return (url || '').replace(/\/+$/, '');
+    }
+
+    document.getElementById('base-url-label').textContent = BASE;
 
     // --- Upload ---
     function onDragOver(e) {

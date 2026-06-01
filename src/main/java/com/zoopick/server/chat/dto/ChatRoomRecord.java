@@ -5,6 +5,8 @@ import com.zoopick.server.chat.entity.ChatRoomStatus;
 import com.zoopick.server.item.entity.ItemStatus;
 import lombok.*;
 
+import java.time.LocalDateTime;
+
 @Getter
 @Setter
 @AllArgsConstructor
@@ -24,4 +26,10 @@ public class ChatRoomRecord {
     private Long itemId;
     @JsonProperty("item_status")
     private ItemStatus itemStatus;
+    @JsonProperty("unread_count")
+    private Long unreadCount;
+    @JsonProperty("update_time")
+    private LocalDateTime updateTime;
+    @JsonProperty("last_message")
+    private String lastMessage;
 }

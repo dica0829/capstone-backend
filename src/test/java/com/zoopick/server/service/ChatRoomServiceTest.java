@@ -9,7 +9,6 @@ import com.zoopick.server.chat.dto.CreateChatRoomResult;
 import com.zoopick.server.chat.entity.ChatMessage;
 import com.zoopick.server.chat.entity.ChatRoom;
 import com.zoopick.server.chat.entity.ChatRoomStatus;
-import com.zoopick.server.chat.mapper.ChatMessageMapper;
 import com.zoopick.server.chat.mapper.ChatRoomMapper;
 import com.zoopick.server.chat.repository.ChatMessageRepository;
 import com.zoopick.server.chat.repository.ChatRoomRepository;
@@ -51,8 +50,6 @@ class ChatRoomServiceTest {
     private ChatMessageRepository chatMessageRepository;
     @Mock
     private NotificationService notificationService;
-    @Mock
-    private ChatMessageMapper chatMessageMapper;
     @Mock
     private ChatRoomMapper chatRoomMapper;
 
@@ -104,7 +101,7 @@ class ChatRoomServiceTest {
 
         when(chatRoomRepository.findOpenByParticipantAndItem(1L, 10L))
                 .thenReturn(Optional.of(openChatRoom));
-        when(chatRoomMapper.toChatRoomRecord(openChatRoom)).thenReturn(mockRecord);
+        when(chatRoomMapper.toChatRoomRecord(openChatRoom, null, 0)).thenReturn(mockRecord);
 
         // when
         CreateChatRoomResult result = chatRoomService.createChatRoom(1L, request);
@@ -129,7 +126,7 @@ class ChatRoomServiceTest {
         when(chatRoomRepository.findOpenByParticipantAndItem(1L, 10L)).thenReturn(Optional.empty());
 
         when(chatRoomRepository.save(any(ChatRoom.class))).thenReturn(openChatRoom);
-        when(chatRoomMapper.toChatRoomRecord(openChatRoom)).thenReturn(mockRecord);
+        when(chatRoomMapper.toChatRoomRecord(openChatRoom, null, 0)).thenReturn(mockRecord);
 
         // when
         CreateChatRoomResult result = chatRoomService.createChatRoom(1L, request);

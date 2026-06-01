@@ -52,6 +52,17 @@ CREATE TYPE zoopick.chat_message_type AS ENUM (
 );
 
 
+
+--
+-- Name: detection_status; Type: TYPE; Schema: zoopick; Owner: postgres
+--
+
+CREATE TYPE zoopick.detection_status AS ENUM (
+    'PENDING',
+    'CONFIRMED'
+);
+
+
 ALTER TYPE zoopick.chat_message_type OWNER TO postgres;
 
 --
@@ -357,6 +368,7 @@ CREATE TABLE zoopick.cctv_detections (
                                          embedding zoopick.vector(512),
                                          item_snapshot_url character varying(500) NOT NULL,
                                          moment_snapshot_url character varying(500) NOT NULL,
+                                         status zoopick.detection_status DEFAULT 'PENDING'::zoopick.detection_status NOT NULL,
                                          created_at timestamp without time zone DEFAULT now() NOT NULL
 );
 
@@ -1095,7 +1107,7 @@ COPY zoopick.cctv_detection_matches (id, detection_id, item_id, score, review_st
 -- Data for Name: cctv_detections; Type: TABLE DATA; Schema: zoopick; Owner: postgres
 --
 
-COPY zoopick.cctv_detections (id, video_id, detected_at, detected_category, detected_color, embedding, item_snapshot_url, moment_snapshot_url, created_at) FROM stdin;
+COPY zoopick.cctv_detections (id, video_id, detected_at, detected_category, detected_color, embedding, item_snapshot_url, moment_snapshot_url, status, created_at) FROM stdin;
 \.
 
 

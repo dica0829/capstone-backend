@@ -391,17 +391,18 @@ public class CctvService {
             Item lostItem = cctvDetectionMatch.getItem();
             lostItem.theftSuspected(now);
             itemService.changeItemStatus(lostItem.getId(), ItemStatus.THEFT_CONFIRMED);
+            cctvDetectionMatch.getCctvDetection().confirm(); // detection 자체도 CONFIRMED로 전환
             cctvDetectionMatchRepository.rejectOtherPendingMatches( // 나머지 reject 처리
                     lostItem.getId(),
                     matchId,
                     DetectionReviewStatus.REJECTED_SELF,
                     DetectionReviewStatus.PENDING,
                     now);
-            log.info("[CCTV] 도난 상태 저장 완료: itemId={}", lostItem.getId());
+            log.info("[CCTV] 도난 상태 저장 완료: itemId={}, detectionId={}",
+                    lostItem.getId(), cctvDetectionMatch.getCctvDetection().getId());
         }
 
         cctvDetectionMatch.updateDetectionReviewStatus(request.getReviewStatus());
-
         log.info("[CCTV] 리뷰 상태 변경: MatchId={}, Status={}", matchId, request.getReviewStatus());
     }
 }

@@ -54,7 +54,20 @@ public class CctvDetection {
     @Column(name = "moment_snapshot_url", length = 500)
     private String momentSnapshotUrl;
 
+    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(name = "status", columnDefinition = "detection_status")
+    @Builder.Default
+    private DetectionStatus status = DetectionStatus.PENDING;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     @CreatedDate
     private LocalDateTime createdAt;
+
+    /**
+     * 사용자가 본인 물건으로 확정(CONFIRMED_SELF) 한 detection을 도난 확정 상태로 전환.
+     */
+    public void confirm() {
+        this.status = DetectionStatus.CONFIRMED;
+    }
 }

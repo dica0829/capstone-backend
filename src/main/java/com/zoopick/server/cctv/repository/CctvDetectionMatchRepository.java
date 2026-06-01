@@ -53,6 +53,7 @@ public interface CctvDetectionMatchRepository extends JpaRepository<CctvDetectio
           AND v.room_id IN (:roomIds)
           AND d.detected_at BETWEEN (CAST(:reportedAt AS timestamp) - interval '48 hours')
                                 AND (CAST(:reportedAt AS timestamp) + interval '48 hours')
+          AND d.status = 'PENDING'
         ORDER BY d.embedding <=> CAST(:embedding AS vector)
         LIMIT 100
     ) t
